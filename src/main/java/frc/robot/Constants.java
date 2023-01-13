@@ -10,4 +10,9 @@ public class Constants {
         public static final int kRightBackPort=4;
         public static final int kRightTopPort=3;
     }
+
+    public class XBConstants {
+        public static final int drivePort = 0;
+        public static final int opPort = 1;
+    }
 }
