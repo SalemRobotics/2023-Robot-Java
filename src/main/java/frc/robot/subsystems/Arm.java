@@ -9,16 +9,16 @@ import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.constants.ArmConstants;
 
 public class Arm extends SubsystemBase {
-    CANSparkMax pivotMotor1 = new CANSparkMax(Constants.ArmConstants.kPivotPort1, MotorType.kBrushless);
-    CANSparkMax pivotMotor2 = new CANSparkMax(Constants.ArmConstants.kPivotPort2, MotorType.kBrushless);
+    CANSparkMax pivotMotor1 = new CANSparkMax(ArmConstants.kPivotPort1, MotorType.kBrushless);
+    CANSparkMax pivotMotor2 = new CANSparkMax(ArmConstants.kPivotPort2, MotorType.kBrushless);
 
-    CANSparkMax extensionMotor = new CANSparkMax(Constants.ArmConstants.kExtensionPort, MotorType.kBrushless);
+    CANSparkMax extensionMotor = new CANSparkMax(ArmConstants.kExtensionPort, MotorType.kBrushless);
 
-    AnalogEncoder pivotEncoder = new AnalogEncoder(Constants.ArmConstants.kPivotEncoderPort);
-    Encoder extensionEncoder = new Encoder(Constants.ArmConstants.kExtensionEncoderSourceA, Constants.ArmConstants.kExtensionEncoderSourceB);
+    AnalogEncoder pivotEncoder = new AnalogEncoder(ArmConstants.kPivotEncoderPort);
+    Encoder extensionEncoder = new Encoder(ArmConstants.kExtensionEncoderSourceA, ArmConstants.kExtensionEncoderSourceB);
 
     SparkMaxPIDController pivotController;
     SparkMaxPIDController extensionController;
@@ -90,13 +90,13 @@ public class Arm extends SubsystemBase {
      * TODO: once satisfied with constants, read them from a file instead of smart dashboard
      */
     void updatePivotConsts() {
-        double p =SmartDashboard.getNumber("Error Multiplier (P)", kPivotP);
-        double i =SmartDashboard.getNumber("Sum Error (I)", kPivotI);
-        double d =SmartDashboard.getNumber("Slope Error (D)", kPivotD);
-        double iz =SmartDashboard.getNumber("Integral Effective Error Range (IZone)", kPivotIz);
-        double ff =SmartDashboard.getNumber("Control Loop Gain (Feed Forward)", kPivotFF);
-        double min =SmartDashboard.getNumber("Min Output", kPivotMinOutput);
-        double max =SmartDashboard.getNumber("Max Output", kPivotMaxOutput);
+        double p = SmartDashboard.getNumber("Error Multiplier (P)", kPivotP);
+        double i = SmartDashboard.getNumber("Sum Error (I)", kPivotI);
+        double d = SmartDashboard.getNumber("Slope Error (D)", kPivotD);
+        double iz = SmartDashboard.getNumber("Integral Effective Error Range (IZone)", kPivotIz);
+        double ff = SmartDashboard.getNumber("Control Loop Gain (Feed Forward)", kPivotFF);
+        double min = SmartDashboard.getNumber("Min Output", kPivotMinOutput);
+        double max = SmartDashboard.getNumber("Max Output", kPivotMaxOutput);
         double minV = SmartDashboard.getNumber("Min Velocity", kPivotMinVel);
         double maxV = SmartDashboard.getNumber("Max Velocity", kPivotMaxVel);
         double maxA = SmartDashboard.getNumber("Max Acceleration", kPivotMaxAcc);

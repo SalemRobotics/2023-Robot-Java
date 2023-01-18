@@ -1,0 +1,15 @@
+{
+    "ArmPivotPID":
+    {
+        "P": 0,
+        "I": 1,
+        "D": 2
+    },
+    
+    "ArmExtensionPID":
+    {
+        "P": 0,
+        "I": 1,
+        "D": 2
+    }
+}
