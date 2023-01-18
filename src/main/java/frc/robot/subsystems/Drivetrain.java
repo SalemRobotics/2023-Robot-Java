@@ -12,19 +12,19 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.constants.DrivetrainConstants;
 
 /**
  * Subsystem class for the drivetrain subsystem
  */
 public class Drivetrain extends SubsystemBase {
-    CANSparkMax leftFrontMotor = new CANSparkMax(Constants.DrivetrainConstants.kLeftFrontPort, MotorType.kBrushless);
-    CANSparkMax leftBackMotor = new CANSparkMax(Constants.DrivetrainConstants.kLeftBackPort, MotorType.kBrushless);
-    CANSparkMax leftTopMotor = new CANSparkMax(Constants.DrivetrainConstants.kLeftTopPort, MotorType.kBrushless);
+    CANSparkMax leftFrontMotor = new CANSparkMax(DrivetrainConstants.kLeftFrontPort, MotorType.kBrushless);
+    CANSparkMax leftBackMotor = new CANSparkMax(DrivetrainConstants.kLeftBackPort, MotorType.kBrushless);
+    CANSparkMax leftTopMotor = new CANSparkMax(DrivetrainConstants.kLeftTopPort, MotorType.kBrushless);
 
-    CANSparkMax rightFrontMotor = new CANSparkMax(Constants.DrivetrainConstants.kRightFrontPort, MotorType.kBrushless);
-    CANSparkMax rightBackMotor = new CANSparkMax(Constants.DrivetrainConstants.kRightBackPort, MotorType.kBrushless);
-    CANSparkMax rightTopMotor = new CANSparkMax(Constants.DrivetrainConstants.kRightTopPort, MotorType.kBrushless);
+    CANSparkMax rightFrontMotor = new CANSparkMax(DrivetrainConstants.kRightFrontPort, MotorType.kBrushless);
+    CANSparkMax rightBackMotor = new CANSparkMax(DrivetrainConstants.kRightBackPort, MotorType.kBrushless);
+    CANSparkMax rightTopMotor = new CANSparkMax(DrivetrainConstants.kRightTopPort, MotorType.kBrushless);
 
     DifferentialDrive drive = new DifferentialDrive(leftFrontMotor, rightFrontMotor);
 

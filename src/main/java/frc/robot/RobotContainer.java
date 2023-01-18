@@ -9,8 +9,8 @@ import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Constants.XBConstants;
 import frc.robot.commands.DefaultDrive;
+import frc.robot.constants.XBConstants;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
