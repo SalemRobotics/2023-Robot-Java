@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.opencv.core.Point;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
@@ -9,6 +11,7 @@ import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotProperties;
 import frc.robot.constants.ArmConstants;
 
 public class Arm extends SubsystemBase {
@@ -71,13 +74,43 @@ public class Arm extends SubsystemBase {
         extensionController.setIZone(kExtIz);
         extensionController.setFF(kExtFF);
         extensionController.setOutputRange(kExtMinOutput, kExtMaxOutput);
+
+        // RobotProperties.loadPIDConstants("PivotPID", pivotController);
+        // RobotProperties.loadPIDConstants("ExtensionPID", extensionController);
     }
 
-    public void setPosition(double x, double y) {
-        double angle = Math.atan(y/x);
-        double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    /**
+     * TODO: Account for manipulator dimensions.
+     * Sets the target position for the end effector to travel towards.
+     * @param point A Point object represnting a point in local coordinate space to move to.
+     */
+    public void setTargetPoint(Point point) {
+        double angle = Math.atan(point.y/point.x);
+        double distance = Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
+        
+        // the length of the arm and end effector before any transformations
+        double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
+
         pivotController.setReference(angle, ControlType.kSmartMotion);
-        extensionController.setReference(distance, ControlType.kSmartMotion);
+        extensionController.setReference(distance - baseLength, ControlType.kSmartMotion);
+    }
+
+    /**
+     * Gets the current position of the end effector in local coordinate space.
+     * @return A point object representing the current position in local coordinate space.
+     */
+    public Point getCurrentPoint() {
+        Point point = new Point();
+
+        // the length of the arm and end effector before any transformations
+        double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
+        
+        // the length of the arm and end effector after transformations
+        double extensionLength = baseLength + extensionEncoder.getDistance();
+        
+        point.x = extensionLength * Math.cos(pivotEncoder.getAbsolutePosition());
+        point.y = extensionLength * Math.sin(pivotEncoder.getAbsolutePosition());
+        return point;
     }
 
     @Override

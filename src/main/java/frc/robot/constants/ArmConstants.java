@@ -8,4 +8,7 @@ public class ArmConstants {
     public static final int kPivotEncoderPort = 0;
     public static final int kExtensionEncoderSourceA = 0;
     public static final int kExtensionEncoderSourceB = 0;
+
+    public static final double kArmRetractedLength = 0.0; // inches
+    public static final double kEndEffectorLength = 0.0; // inches
 }
