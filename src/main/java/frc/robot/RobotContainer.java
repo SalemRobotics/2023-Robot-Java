@@ -36,9 +36,14 @@ public class RobotContainer {
 
   private void configureBindings() {
     /* Driver Controller */
-      // 
+      // Set the arm to the intaking position and run the intake inwards
     new JoystickButton(driverController, Button.kRightBumper.value)
     .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeInSpeed))
+    .onFalse(new ArmSetPresetCommand(arm, ArmPresets.DEFAULT));
+
+      // Set the arm to the intaking position and run the intake outwards, to eject the game piece
+    new JoystickButton(driverController, Button.kLeftBumper.value)
+    .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeOutSpeed))
     .onFalse(new ArmSetPresetCommand(arm, ArmPresets.DEFAULT));
 
     /* Operator Controller */
