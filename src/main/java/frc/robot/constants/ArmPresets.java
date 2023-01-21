@@ -3,7 +3,15 @@ package frc.robot.constants;
 import org.opencv.core.Point;
 
 public enum ArmPresets {
-    //x for left (red) big goal is 25.624
+    //x for left (red) hybrid goal is 25.624
+    //y for left (red) hybrid goal isn't really relevant
+    //x for all regular hybrid goals is 23.9525
+    //y for all hybrid goals is kind of 0
+    //x for all regular low shelf goals is 39.792
+    //y for all regular low shelf goals is 20.563
+    //x for all regular high shelf goals is 57.259
+    //y for all regular high shelf goals is 32.533
+
     LOW_GOAL(0, 0),
     MID_GOAL(0, 0),
     HIGH_GOAL(0, 0);
