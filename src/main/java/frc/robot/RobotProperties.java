@@ -61,7 +61,7 @@ public class RobotProperties extends Properties {
             controller.setSmartMotionMaxAccel(maxA, 0);
             controller.setSmartMotionAllowedClosedLoopError(allE, 0);
         } catch (IOException e) {
-            DriverStation.reportError("File not found or corrupted.", true);
+            DriverStation.reportError("File not found or corrupted.", e.getStackTrace());
         }
     }
 }

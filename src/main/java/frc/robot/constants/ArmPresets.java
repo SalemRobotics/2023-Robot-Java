@@ -12,6 +12,8 @@ public enum ArmPresets {
     //x for all regular high shelf goals is 57.259
     //y for all regular high shelf goals is 32.533
 
+    DEFAULT(0, 0),
+    INTAKE(0, 0),
     LOW_GOAL(0, 0),
     MID_GOAL(0, 0),
     HIGH_GOAL(0, 0);
@@ -23,7 +25,5 @@ public enum ArmPresets {
         this.y = y;
     }
 
-    public Point get() {
-        return new Point(x, y);
-    }
+    public final Point value = new Point(x, y);
 }

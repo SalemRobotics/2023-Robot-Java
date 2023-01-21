@@ -9,6 +9,10 @@ public class ArmConstants {
     public static final int kExtensionEncoderSourceA = 0;
     public static final int kExtensionEncoderSourceB = 0;
 
+    public static final double kMaxHeight = 0.0; // inches
     public static final double kArmRetractedLength = 0.0; // inches
+    public static final double kArmMaxExtensionLength = 0.0; // inches
     public static final double kEndEffectorLength = 0.0; // inches
+    public static final double kMaxPivotAngle = 0.0; // degrees
+    public static final double kMinPivotAngle = 0.0; // degrees
 }

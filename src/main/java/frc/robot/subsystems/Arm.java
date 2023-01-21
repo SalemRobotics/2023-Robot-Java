@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.AnalogEncoder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -78,9 +79,39 @@ public class Arm extends SubsystemBase {
         // RobotProperties.loadPIDConstants("PivotPID", pivotController);
         // RobotProperties.loadPIDConstants("ExtensionPID", extensionController);
     }
+    
+    /**
+     * Checks if the specified encoder position is within the defined limits
+     * @param encoderPosition the encoder position to check
+     * @param min minimum constraint
+     * @param max maximum constraint
+     * @param requestedSpeed requested speed that the motor will attempt to run at
+     * @return true if limit is reached
+     */
+    boolean isAtLimit(double encoderPosition, double min, double max, double requestedSpeed) {
+        return (encoderPosition >= max && requestedSpeed > 0) || (encoderPosition <= min && requestedSpeed < 0);
+    }
 
     /**
-     * TODO: Account for manipulator dimensions.
+     * Manually set the speeds for the extension and pivot of the arm subsystem
+     * @param extension the speed to extend at
+     * @param rotation the speed to pivot at
+     */
+    public void setArmSpeeds(double extension, double rotation) {
+        if (isAtLimit(pivotEncoder.getAbsolutePosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rotation))
+            pivotController.setReference(0.0, ControlType.kVelocity);
+        else 
+            pivotController.setReference(rotation, ControlType.kVelocity);
+
+        if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
+            extensionController.setReference(-1.0, ControlType.kVelocity);
+        else if (isAtLimit(extensionEncoder.getDistance(), 0.0, ArmConstants.kArmMaxExtensionLength, extension))
+            extensionController.setReference(0.0, ControlType.kVelocity);
+        else
+            extensionController.setReference(extension, ControlType.kVelocity);
+    }
+
+    /**
      * Sets the target position for the end effector to travel towards.
      * @param point A Point object represnting a point in local coordinate space to move to.
      */
@@ -90,6 +121,19 @@ public class Arm extends SubsystemBase {
         
         // the length of the arm and end effector before any transformations
         double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
+
+        if (distance - baseLength >= ArmConstants.kArmMaxExtensionLength || distance - baseLength < 0) {
+            DriverStation.reportError("Not a valid distance; outside safe range.", null);
+            return;
+        }
+        if (angle >= ArmConstants.kMaxPivotAngle || angle <= ArmConstants.kMinPivotAngle) {
+            DriverStation.reportError("Not a valid pivot angle; outside safe range.", null);
+            return;
+        }
+        if (point.y >= ArmConstants.kMaxHeight) {
+            DriverStation.reportError("Cannot extend; Y coordinate is above max height.", null);
+            return;
+        }
 
         pivotController.setReference(angle, ControlType.kSmartMotion);
         extensionController.setReference(distance - baseLength, ControlType.kSmartMotion);
