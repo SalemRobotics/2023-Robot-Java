@@ -5,26 +5,23 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Drivetrain;
 
+/**
+ * This command allows default tank drive control over the drivetrain using command based control
+ */
 public class DefaultDrive extends CommandBase {
     private final Drivetrain drive;
-    private final DoubleSupplier forward;
-    private final DoubleSupplier rotation;
-    private final boolean reversed;
+    private final DoubleSupplier left;
+    private final DoubleSupplier right;
 
-    public DefaultDrive(Drivetrain subsystem, DoubleSupplier fwd, DoubleSupplier rot, boolean reversed){
+    public DefaultDrive(Drivetrain subsystem, DoubleSupplier leftSpeed, DoubleSupplier rightSpeed){
         drive = subsystem;
-        forward = fwd;
-        rotation = rot;
-        this.reversed = reversed;
+        left = leftSpeed;
+        right = rightSpeed;
         addRequirements(drive);
     }
 
     @Override
     public void execute() {
-        if (reversed) {
-            drive.arcadeDrive(-forward.getAsDouble(), rotation.getAsDouble());
-        } else {
-            drive.arcadeDrive(forward.getAsDouble(), rotation.getAsDouble());
-        }
+        drive.tankDrive(left.getAsDouble(), right.getAsDouble());
     }
 }

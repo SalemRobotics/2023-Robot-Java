@@ -1,6 +1,7 @@
 package frc.robot.constants;
 
 public class DrivetrainConstants {
+    // currently temporary
     public static final int kLeftFrontPort=0;
     public static final int kLeftBackPort=1;
     public static final int kLeftTopPort=2;

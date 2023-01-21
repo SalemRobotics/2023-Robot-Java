@@ -5,10 +5,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.DefaultDrive;
 import frc.robot.constants.XBConstants;
 import frc.robot.subsystems.Drivetrain;
@@ -24,16 +22,11 @@ public class RobotContainer {
     configureBindings();
 
     robotDrive.setDefaultCommand(
-      new DefaultDrive(robotDrive, driverController::getLeftY, driverController::getRightX, false)
+      new DefaultDrive(robotDrive, driverController::getLeftY, driverController::getRightX)
     );
   }
 
-  private void configureBindings() {
-    // switches drive direction
-    new JoystickButton(driverController, Button.kB.value).toggleOnTrue(
-      new DefaultDrive(robotDrive, driverController::getLeftY, driverController::getRightX, true)
-    );
-  }
+  private void configureBindings() {}
     
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");

@@ -9,7 +9,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DrivetrainConstants;
 
 /**
- * Subsystem class for the drivetrain subsystem
+ * Subsystem class for the drivetrain subsystem.
+ * Allows tank drive control by a player-operated xbox controller.
  */
 public class Drivetrain extends SubsystemBase {
     MotorControllerGroup leftMotors = new MotorControllerGroup(
@@ -24,26 +25,23 @@ public class Drivetrain extends SubsystemBase {
         new CANSparkMax(DrivetrainConstants.kRightTopPort, MotorType.kBrushless)
     );
 
+    // differential drive object that controls the left and right motors
     DifferentialDrive drive = new DifferentialDrive(leftMotors, rightMotors);
 
     public Drivetrain() {
+        /* 
+         * the right motors should be inverted so that they do not 
+         * drive in the opposite direction than the left motors 
+         */
         rightMotors.setInverted(true);
-    }
- 
-    /** 
-     * sets volts to control motors at a set speed 
-     */
-    public void tankDriveVolts(Double speed) {
-        rightMotors.set(speed);
-        leftMotors.set(speed);
     }
 
     /** 
-     * sets arcade drive for motors
-     * fwd is Forward axis of drivetrain (Y axis)
-     * rot is Axis of rotation of drivetrain (X axis) 
+     * Sets tank drive speeds for motors
+     * @param left the speed for the left-side motors
+     * @param right the speed for the right-side motors
      */
-    public void arcadeDrive(double fwd, double rot) {
-        drive.arcadeDrive(-fwd, rot, true);
+    public void tankDrive(double left, double right) {
+        drive.tankDrive(left, right, true);
     }
 }
