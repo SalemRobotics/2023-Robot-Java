@@ -7,8 +7,8 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -21,7 +21,7 @@ public class Arm extends SubsystemBase {
 
     CANSparkMax extensionMotor = new CANSparkMax(ArmConstants.kExtensionPort, MotorType.kBrushless);
 
-    AnalogEncoder pivotEncoder = new AnalogEncoder(ArmConstants.kPivotEncoderPort);
+    DutyCycleEncoder pivotEncoder = new DutyCycleEncoder(ArmConstants.kPivotEncoderPort);
     Encoder extensionEncoder = new Encoder(ArmConstants.kExtensionEncoderSourceA, ArmConstants.kExtensionEncoderSourceB);
 
     SparkMaxPIDController pivotController;
@@ -38,7 +38,9 @@ public class Arm extends SubsystemBase {
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
 
-        extensionEncoder.setDistancePerPulse(0); // TODO: distancePerPulse = pulley circum / pulses per rotation
+        pivotEncoder.setConnectedFrequencyThreshold(ArmConstants.kPivotEncoderFrequency);
+        pivotEncoder.setDutyCycleRange(ArmConstants.kPivotEncoderPulseMin, ArmConstants.kPivotEncoderPulseMax);
+        extensionEncoder.setDistancePerPulse(ArmConstants.kExtensionEncoderDistance);
 
         // Pivot Loop Consts 
         // TODO: Profile arm to get the below values. Currently default.
