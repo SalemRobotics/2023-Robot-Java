@@ -3,18 +3,22 @@ package frc.robot.subsystems;
 import org.opencv.core.Point;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotProperties;
 import frc.robot.constants.ArmConstants;
 
+/**
+ * The Arm subsystem controls a multistage telescoping arm utlizing 2 PID control systems
+ * to control the position of the arm using (x,y) coordinates. <p>
+ * Uses 3 NEO motors, 1 absolute encoder and 1 quadrature encoder.
+ */
 public class Arm extends SubsystemBase {
     CANSparkMax pivotMotor1 = new CANSparkMax(ArmConstants.kPivotPort1, MotorType.kBrushless);
     CANSparkMax pivotMotor2 = new CANSparkMax(ArmConstants.kPivotPort2, MotorType.kBrushless);
@@ -34,7 +38,10 @@ public class Arm extends SubsystemBase {
     double kExtP, kExtI, kExtD, 
         kExtIz, kExtFF, kExtMaxOutput, kExtMinOutput,
         kExtMaxVel, kExtMinVel, kExtMaxAcc, kExtAllowedErr;
-
+    
+    /**
+     * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
+     */
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
 
@@ -166,7 +173,8 @@ public class Arm extends SubsystemBase {
     }
 
     /**
-     * TODO: once satisfied with constants, read them from a file instead of smart dashboard
+     * Reads and allows editing of PID constants for the pivot PID controller from shuffleboard <p>
+     * TODO: once satisfied with constants, read them from a file instead of shuffleboard
      */
     void updatePivotConsts() {
         double p = SmartDashboard.getNumber("Error Multiplier (P)", kPivotP);
@@ -197,7 +205,8 @@ public class Arm extends SubsystemBase {
     }
 
     /**
-     * TODO: once satisfied with constants, read them from a file instead of smart dashboard
+     * Reads and allows editing of PID constants for the extension PID controller from shuffleboard <p>
+     * TODO: once satisfied with constants, read them from a file instead of shuffleboard
      */
     void updateExtensionConsts() {
         double p =SmartDashboard.getNumber("Error Multiplier (P)", kExtP);
