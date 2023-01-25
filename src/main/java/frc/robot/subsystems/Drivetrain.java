@@ -8,9 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DrivetrainConstants;
 
@@ -28,7 +26,7 @@ public class Drivetrain extends SubsystemBase {
 
     DifferentialDrive drive = new DifferentialDrive(leftFrontMotor, rightFrontMotor);
 
-    PigeonIMU gyro = new PigeonIMU(1);
+    PigeonIMU gyro = new PigeonIMU(DrivetrainConstants.kPidgeonPort);
 
     // Create gyro and odometry
     DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
@@ -54,15 +52,16 @@ public class Drivetrain extends SubsystemBase {
     /** 
      * sets volts to control motors at a set speed 
      */
-    public void tankDriveVolts(Double speed) {
-        rightFrontMotor.set(speed);
-        leftFrontMotor.set(speed);
+    public void tankDriveVolts(double leftVolts, double rightVolts) {
+        rightFrontMotor.set(rightVolts);
+        leftFrontMotor.set(leftVolts);
         drive.feed();
     }
 
     public Pose2d getPose() {
         return odometry.getPoseMeters();
     }
+
     /** 
      * sets arcade drive for motors
      * fwd is Forward axis of drivetrain (Y axis)
@@ -78,7 +77,6 @@ public class Drivetrain extends SubsystemBase {
 
     public Rotation2d getRotation2d() {
         double yaw = gyro.getYaw();
-        //SmartDashboard.putNumber("Yaw", yaw);
         return Rotation2d.fromDegrees(Math.IEEEremainder(yaw, 360.0d));
     }
 
