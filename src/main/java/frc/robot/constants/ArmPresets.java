@@ -2,6 +2,9 @@ package frc.robot.constants;
 
 import org.opencv.core.Point;
 
+/**
+ * An enum containing the preset positions for the {@link frc.robot.subsystems.Arm} subsystem.
+ */
 public enum ArmPresets {
     //x for left (red) hybrid goal is 25.624
     //y for left (red) hybrid goal isn't really relevant

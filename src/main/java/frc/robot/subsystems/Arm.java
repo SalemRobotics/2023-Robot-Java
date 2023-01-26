@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
 
 /**
- * The Arm subsystem controls a multistage telescoping arm utlizing 2 PID control systems
+ * The {@link Arm} subsystem controls a multistage telescoping arm utlizing 2 PID control systems
  * to control the position of the arm using (x,y) coordinates. <p>
  * Uses 3 NEO motors, 1 absolute encoder and 1 quadrature encoder.
  */
@@ -102,7 +102,7 @@ public class Arm extends SubsystemBase {
     }
 
     /**
-     * Manually set the speeds for the extension and pivot of the arm subsystem
+     * Manually set the speeds for the extension and pivot of the {@link Arm} subsystem
      * @param extension the speed to extend at
      * @param rotation the speed to pivot at
      */
@@ -122,7 +122,7 @@ public class Arm extends SubsystemBase {
 
     /**
      * Sets the target position for the end effector to travel towards.
-     * @param point A Point object represnting a point in local coordinate space to move to.
+     * @param point A {@link Point} object represnting a point in cartesian coordinate space to move to.
      */
     public void setTargetPoint(Point point) {
         double angle = Math.atan(point.y/point.x);
@@ -149,8 +149,8 @@ public class Arm extends SubsystemBase {
     }
 
     /**
-     * Gets the current position of the end effector in local coordinate space.
-     * @return A point object representing the current position in local coordinate space.
+     * Gets the current position of the end effector in cartesian coordinate space.
+     * @return A {@link Point} object representing the current position in cartesian coordinate space.
      */
     public Point getCurrentPoint() {
         Point point = new Point();
