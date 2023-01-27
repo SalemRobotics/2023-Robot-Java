@@ -64,8 +64,8 @@ public class Drivetrain extends SubsystemBase {
 
     /** 
      * sets arcade drive for motors
-     * fwd is Forward axis of drivetrain (Y axis)
-     * rot is Axis of rotation of drivetrain (X axis) 
+     * @param fwd Forward axis of drivetrain (Y axis)
+     * @param rot Axis of rotation of drivetrain (X axis) 
      */
     public void arcadeDrive(double fwd, double rot) {
         drive.arcadeDrive(-fwd, rot, true);
@@ -98,7 +98,9 @@ public class Drivetrain extends SubsystemBase {
         odometry.resetPosition(
             getRotation2d(), leftFrontMotor.getEncoder().getPosition(), rightFrontMotor.getEncoder().getPosition(), pose);
     }
-
+    /*
+     * uses the rotation to find how many degrees the bot is turned
+     */
     public void getHeading() {
         getRotation2d().getDegrees();
     }
@@ -108,7 +110,9 @@ public class Drivetrain extends SubsystemBase {
         gyro.getRawGyro(xyz);
         return xyz[1];
     }
-
+    /*
+     * sets the yaw to 0.0
+     */
     public void zeroHeading() {
         gyro.setYaw(0.0);
     }  
