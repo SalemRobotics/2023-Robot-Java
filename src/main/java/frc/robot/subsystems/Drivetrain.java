@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DrivetrainConstants;
 
 /**
- * Subsystem class for the drivetrain subsystem
+ * Subsystem class for the drivetrain subsystem.
  */
 public class Drivetrain extends SubsystemBase {
     CANSparkMax leftFrontMotor = new CANSparkMax(DrivetrainConstants.kLeftFrontPort, MotorType.kBrushless);
