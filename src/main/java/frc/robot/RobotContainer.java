@@ -22,7 +22,7 @@ public class RobotContainer {
     configureBindings();
 
     robotDrive.setDefaultCommand(
-      new DefaultDrive(robotDrive, driverController::getLeftY, driverController::getRightX)
+      new DefaultDrive(robotDrive, driverController::getLeftY, driverController::getRightY)
     );
   }
 
