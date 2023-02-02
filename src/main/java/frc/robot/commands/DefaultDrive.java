@@ -22,6 +22,6 @@ public class DefaultDrive extends CommandBase {
 
     @Override
     public void execute() {
-        drive.tankDrive(left.getAsDouble(), right.getAsDouble());
+        drive.arcadeDrive(left.getAsDouble(), right.getAsDouble());
     }
 }

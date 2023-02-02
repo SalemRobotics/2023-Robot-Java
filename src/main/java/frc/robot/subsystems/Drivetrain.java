@@ -41,7 +41,7 @@ public class Drivetrain extends SubsystemBase {
      * @param left the speed for the left-side motors
      * @param right the speed for the right-side motors
      */
-    public void tankDrive(double left, double right) {
-        drive.tankDrive(left, right, true);
+    public void arcadeDrive(double left, double right) {
+        drive.arcadeDrive(left, right, true);
     }
 }
