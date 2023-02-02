@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import org.opencv.core.Point;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.SparkMaxPIDController;
@@ -25,7 +26,7 @@ public class Arm extends SubsystemBase {
 
     CANSparkMax extensionMotor = new CANSparkMax(ArmConstants.kExtensionPort, MotorType.kBrushless);
 
-    Encoder pivotEncoder = new Encoder(ArmConstants.kPivotEncoderSourceA, ArmConstants.kPivotEncoderSourceB);
+    RelativeEncoder pivotEncoder = pivotMotor1.getEncoder();
     Encoder extensionEncoder = new Encoder(ArmConstants.kExtensionEncoderSourceA, ArmConstants.kExtensionEncoderSourceB);
 
     DigitalInput pivotSwitchMin = new DigitalInput(ArmConstants.kPivotSwitchMinChannel);
@@ -50,7 +51,7 @@ public class Arm extends SubsystemBase {
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
 
-        pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
+        pivotEncoder.setPositionConversionFactor(ArmConstants.kPivotEncoderDistance);
         extensionEncoder.setDistancePerPulse(ArmConstants.kExtensionEncoderDistance);
 
         // Pivot Loop Consts 
@@ -110,7 +111,7 @@ public class Arm extends SubsystemBase {
      */
     void limitResetEncoders() {
         if (pivotSwitchMin.get() || pivotSwitchMax.get()) {
-            pivotEncoder.reset();
+            pivotEncoder.setPosition(0.0);
         }
         if (encoderSwitchMin.get() || encoderSwitchMax.get()) {
             extensionEncoder.reset();
@@ -123,7 +124,7 @@ public class Arm extends SubsystemBase {
      * @param rotation the speed to pivot at
      */
     public void setArmSpeeds(double extension, double rotation) {
-        if (isAtLimit(pivotEncoder.getDistance(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rotation))
+        if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rotation))
             pivotController.setReference(0.0, ControlType.kVelocity);
         else 
             pivotController.setReference(rotation, ControlType.kVelocity);
@@ -177,8 +178,8 @@ public class Arm extends SubsystemBase {
         // the length of the arm and end effector after transformations
         double extensionLength = baseLength + extensionEncoder.getDistance();
         
-        point.x = extensionLength * Math.cos(pivotEncoder.getDistance());
-        point.y = extensionLength * Math.sin(pivotEncoder.getDistance());
+        point.x = extensionLength * Math.cos(pivotEncoder.getPosition());
+        point.y = extensionLength * Math.sin(pivotEncoder.getPosition());
         return point;
     }
 
