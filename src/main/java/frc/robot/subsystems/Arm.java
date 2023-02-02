@@ -7,8 +7,8 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.SparkMaxPIDController;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -25,8 +25,13 @@ public class Arm extends SubsystemBase {
 
     CANSparkMax extensionMotor = new CANSparkMax(ArmConstants.kExtensionPort, MotorType.kBrushless);
 
-    DutyCycleEncoder pivotEncoder = new DutyCycleEncoder(ArmConstants.kPivotEncoderPort);
+    Encoder pivotEncoder = new Encoder(ArmConstants.kPivotEncoderSourceA, ArmConstants.kPivotEncoderSourceB);
     Encoder extensionEncoder = new Encoder(ArmConstants.kExtensionEncoderSourceA, ArmConstants.kExtensionEncoderSourceB);
+
+    DigitalInput pivotSwitchMin = new DigitalInput(ArmConstants.kPivotSwitchMinChannel);
+    DigitalInput pivotSwitchMax = new DigitalInput(ArmConstants.kPivotSwitchMaxChannel);
+    DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kEncoderSwitchMinChannel);
+    DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kEncoderSwitchMaxChannel);
 
     SparkMaxPIDController pivotController;
     SparkMaxPIDController extensionController;
@@ -45,8 +50,7 @@ public class Arm extends SubsystemBase {
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
 
-        pivotEncoder.setConnectedFrequencyThreshold(ArmConstants.kPivotEncoderFrequency);
-        pivotEncoder.setDutyCycleRange(ArmConstants.kPivotEncoderPulseMin, ArmConstants.kPivotEncoderPulseMax);
+        pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
         extensionEncoder.setDistancePerPulse(ArmConstants.kExtensionEncoderDistance);
 
         // Pivot Loop Consts 
@@ -102,12 +106,24 @@ public class Arm extends SubsystemBase {
     }
 
     /**
+     * Resets either the pivot or extension encoders to 0 if their respective limit switches are pressed
+     */
+    void limitResetEncoders() {
+        if (pivotSwitchMin.get() || pivotSwitchMax.get()) {
+            pivotEncoder.reset();
+        }
+        if (encoderSwitchMin.get() || encoderSwitchMax.get()) {
+            extensionEncoder.reset();
+        }
+    }
+
+    /**
      * Manually set the speeds for the extension and pivot of the {@link Arm} subsystem
      * @param extension the speed to extend at
      * @param rotation the speed to pivot at
      */
     public void setArmSpeeds(double extension, double rotation) {
-        if (isAtLimit(pivotEncoder.getAbsolutePosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rotation))
+        if (isAtLimit(pivotEncoder.getDistance(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rotation))
             pivotController.setReference(0.0, ControlType.kVelocity);
         else 
             pivotController.setReference(rotation, ControlType.kVelocity);
@@ -161,8 +177,8 @@ public class Arm extends SubsystemBase {
         // the length of the arm and end effector after transformations
         double extensionLength = baseLength + extensionEncoder.getDistance();
         
-        point.x = extensionLength * Math.cos(pivotEncoder.getAbsolutePosition());
-        point.y = extensionLength * Math.sin(pivotEncoder.getAbsolutePosition());
+        point.x = extensionLength * Math.cos(pivotEncoder.getDistance());
+        point.y = extensionLength * Math.sin(pivotEncoder.getDistance());
         return point;
     }
 
