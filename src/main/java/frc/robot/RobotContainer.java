@@ -7,7 +7,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.commands.DefaultDrive;
 import frc.robot.constants.XBConstants;
 import frc.robot.subsystems.Drivetrain;
 
@@ -15,14 +14,14 @@ public class RobotContainer {
 
   private final Drivetrain robotDrive = new Drivetrain();
   
-  private final XboxController driverController = new XboxController(XBConstants.drivePort);
-  private final XboxController operatorController = new XboxController(XBConstants.opPort);
+  private final XboxController driverController = new XboxController(XBConstants.kDriverPort);
+  private final XboxController operatorController = new XboxController(XBConstants.kOperatorPort);
 
   public RobotContainer() {
     configureBindings();
 
     robotDrive.setDefaultCommand(
-      new DefaultDrive(robotDrive, driverController::getLeftY, driverController::getRightX)
+      robotDrive.arcadeDrive(driverController::getLeftY, driverController::getRightX)
     );
   }
 

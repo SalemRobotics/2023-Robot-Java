@@ -1,10 +1,13 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DrivetrainConstants;
 
@@ -41,7 +44,11 @@ public class Drivetrain extends SubsystemBase {
      * @param left the speed for the left-side motors
      * @param right the speed for the right-side motors
      */
-    public void arcadeDrive(double left, double right) {
-        drive.arcadeDrive(left, right, true);
+    public CommandBase arcadeDrive(DoubleSupplier left, DoubleSupplier right) {
+        return run(
+            () -> { // this is a lambda function to call arcade drive
+                drive.arcadeDrive(left.getAsDouble(), -right.getAsDouble());
+            }
+        );
     }
 }
