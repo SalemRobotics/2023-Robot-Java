@@ -47,7 +47,7 @@ public class Drivetrain extends SubsystemBase {
     public CommandBase arcadeDrive(DoubleSupplier left, DoubleSupplier right) {
         return run(
             () -> { // this is a lambda function to call arcade drive
-                drive.arcadeDrive(left.getAsDouble(), -right.getAsDouble());
+                drive.arcadeDrive(left.getAsDouble(), -right.getAsDouble(), true);
             }
         );
     }
