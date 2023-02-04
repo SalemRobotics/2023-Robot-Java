@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -9,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DrivetrainConstants;
 
@@ -48,6 +51,19 @@ public class Drivetrain extends SubsystemBase {
     public void periodic() {
         odometry.update(getRotation2d(), leftFrontMotor.getEncoder().getPosition(), rightFrontMotor.getEncoder().getPosition());
     }
+
+    /** 
+     * sets arcade drive for motors
+     * @param fwd Forward axis of drivetrain (Y axis)
+     * @param rot Axis of rotation of drivetrain (X axis) 
+     */
+    public CommandBase arcadeDrive(DoubleSupplier forward, DoubleSupplier rotation) {
+        return run(
+            () -> {
+                drive.arcadeDrive(forward.getAsDouble(), -rotation.getAsDouble(), true);
+            }
+        );
+    }
  
     /** 
      * sets volts to control motors at a set speed 
@@ -60,15 +76,6 @@ public class Drivetrain extends SubsystemBase {
 
     public Pose2d getPose() {
         return odometry.getPoseMeters();
-    }
-
-    /** 
-     * sets arcade drive for motors
-     * @param fwd Forward axis of drivetrain (Y axis)
-     * @param rot Axis of rotation of drivetrain (X axis) 
-     */
-    public void arcadeDrive(double fwd, double rot) {
-        drive.arcadeDrive(-fwd, rot, true);
     }
 
     public void setMaxOutput(double maxOutput) {
