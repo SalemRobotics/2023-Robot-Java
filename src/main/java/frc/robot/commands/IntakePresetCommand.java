@@ -19,8 +19,8 @@ public class IntakePresetCommand extends ParallelCommandGroup {
      */
     public IntakePresetCommand(Arm armSubsystem, Intake intakeSubsystem, double speed) {
         addCommands(
-            new ArmSetPresetCommand(armSubsystem, ArmPresets.INTAKE),
-            new IntakeRunCommand(intakeSubsystem, speed)
+            armSubsystem.armSetPreset(ArmPresets.INTAKE),
+            intakeSubsystem.intakeRun(speed)
         );
     }
 }

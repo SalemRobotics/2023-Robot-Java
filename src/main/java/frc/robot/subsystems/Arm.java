@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import org.opencv.core.Point;
 
 import com.revrobotics.CANSparkMax;
@@ -12,8 +14,10 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
+import frc.robot.constants.ArmPresets;
 
 /**
  * The {@link Arm} subsystem controls a multistage telescoping arm utlizing 2 PID control systems
@@ -95,6 +99,32 @@ public class Arm extends SubsystemBase {
     }
     
     /**
+     * Moves the position of the {@link Arm} subsystem to the desired preset position.
+     * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
+     */
+    public CommandBase armSetPreset(ArmPresets point) {
+        return runOnce(
+            () -> {
+                setTargetPoint(point.value);
+            }
+        );
+    }
+
+    /**
+     * Moves the position of the {@link Arm} subsystem using manual operator controls. <p>
+     * Gives the ability to control both rotation and extension of the arm.
+     * @param extension the speed to extend at
+     * @param rotation the speed to pivot at
+     */
+    public CommandBase armRunManaul(DoubleSupplier extension, DoubleSupplier rotation) {
+        return run(
+            () -> {
+                setArmSpeeds(extension.getAsDouble(), rotation.getAsDouble());
+            }
+        );
+    }
+
+    /**
      * Checks if the specified encoder position is within the defined limits
      * @param encoderPosition the encoder position to check
      * @param min minimum constraint
@@ -120,26 +150,26 @@ public class Arm extends SubsystemBase {
 
     /**
      * Manually set the speeds for the extension and pivot of the {@link Arm} subsystem
-     * @param extension the speed to extend at
-     * @param rotation the speed to pivot at
+     * @param ext the speed to extend at
+     * @param rot the speed to pivot at
      */
-    public void setArmSpeeds(double extension, double rotation) {
-        if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rotation))
+    public void setArmSpeeds(double ext, double rot) {
+        if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
             pivotController.setReference(0.0, ControlType.kVelocity);
         else 
-            pivotController.setReference(rotation, ControlType.kVelocity);
+            pivotController.setReference(rot, ControlType.kVelocity);
 
         if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
             extensionController.setReference(-1.0, ControlType.kVelocity);
-        else if (isAtLimit(extensionEncoder.getDistance(), 0.0, ArmConstants.kArmMaxExtensionLength, extension))
+        else if (isAtLimit(extensionEncoder.getDistance(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
             extensionController.setReference(0.0, ControlType.kVelocity);
         else
-            extensionController.setReference(extension, ControlType.kVelocity);
+            extensionController.setReference(ext, ControlType.kVelocity);
     }
 
     /**
      * Sets the target position for the end effector to travel towards.
-     * @param point A {@link Point} object represnting a point in cartesian coordinate space to move to.
+     * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
      */
     public void setTargetPoint(Point point) {
         double angle = Math.atan(point.y/point.x);
