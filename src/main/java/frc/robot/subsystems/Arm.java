@@ -30,8 +30,8 @@ public class Arm extends SubsystemBase {
 
     CANSparkMax extensionMotor = new CANSparkMax(ArmConstants.kExtensionPort, MotorType.kBrushless);
 
-    RelativeEncoder pivotEncoder = pivotMotor1.getEncoder();
-    Encoder extensionEncoder = new Encoder(ArmConstants.kExtensionEncoderSourceA, ArmConstants.kExtensionEncoderSourceB);
+    Encoder pivotEncoder = new Encoder(ArmConstants.kPivotEncoderSourceA, ArmConstants.kPivotEncoderSourceB);
+    RelativeEncoder extensionEncoder = extensionMotor.getEncoder();
 
     DigitalInput pivotSwitchMin = new DigitalInput(ArmConstants.kPivotSwitchMinChannel);
     DigitalInput pivotSwitchMax = new DigitalInput(ArmConstants.kPivotSwitchMaxChannel);
@@ -55,8 +55,8 @@ public class Arm extends SubsystemBase {
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
 
-        pivotEncoder.setPositionConversionFactor(ArmConstants.kPivotEncoderDistance);
-        extensionEncoder.setDistancePerPulse(ArmConstants.kExtensionEncoderDistance);
+        pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
+        extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
 
         // Pivot Loop Consts 
         // TODO: Profile arm to get the below values. Currently default.
@@ -141,10 +141,10 @@ public class Arm extends SubsystemBase {
      */
     void limitResetEncoders() {
         if (pivotSwitchMin.get() || pivotSwitchMax.get()) {
-            pivotEncoder.setPosition(0.0);
+            pivotEncoder.reset();
         }
         if (encoderSwitchMin.get() || encoderSwitchMax.get()) {
-            extensionEncoder.reset();
+            extensionEncoder.setPosition(0);
         }
     }
 
@@ -154,14 +154,14 @@ public class Arm extends SubsystemBase {
      * @param rot the speed to pivot at
      */
     public void setArmSpeeds(double ext, double rot) {
-        if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
+        if (isAtLimit(pivotEncoder.getDistance(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
             pivotController.setReference(0.0, ControlType.kVelocity);
         else 
             pivotController.setReference(rot, ControlType.kVelocity);
 
         if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
             extensionController.setReference(-1.0, ControlType.kVelocity);
-        else if (isAtLimit(extensionEncoder.getDistance(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
+        else if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
             extensionController.setReference(0.0, ControlType.kVelocity);
         else
             extensionController.setReference(ext, ControlType.kVelocity);
@@ -206,10 +206,10 @@ public class Arm extends SubsystemBase {
         double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
         
         // the length of the arm and end effector after transformations
-        double extensionLength = baseLength + extensionEncoder.getDistance();
+        double extensionLength = baseLength + extensionEncoder.getPosition();
         
-        point.x = extensionLength * Math.cos(pivotEncoder.getPosition());
-        point.y = extensionLength * Math.sin(pivotEncoder.getPosition());
+        point.x = extensionLength * Math.cos(pivotEncoder.getDistance());
+        point.y = extensionLength * Math.sin(pivotEncoder.getDistance());
         return point;
     }
 
