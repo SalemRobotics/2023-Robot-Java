@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DrivetrainConstants;
@@ -36,12 +37,12 @@ public class Drivetrain extends SubsystemBase {
         getRotation2d(), leftFrontMotor.getEncoder().getPosition(), rightFrontMotor.getEncoder().getPosition());
 
     public Drivetrain() {
-        leftBackMotor.follow(leftFrontMotor);
         leftTopMotor.follow(leftFrontMotor);
+        leftBackMotor.follow(leftFrontMotor);
 
         rightFrontMotor.setInverted(true);
-        rightBackMotor.follow(rightFrontMotor);
         rightTopMotor.follow(rightFrontMotor);
+        rightBackMotor.follow(rightFrontMotor);
 
         zeroHeading();
         resetEncoders();
@@ -50,6 +51,15 @@ public class Drivetrain extends SubsystemBase {
     @Override
     public void periodic() {
         odometry.update(getRotation2d(), leftFrontMotor.getEncoder().getPosition(), rightFrontMotor.getEncoder().getPosition());
+        updateShuffleboard();
+    }
+
+    void updateShuffleboard() {
+        /** Gyro **/
+        SmartDashboard.putNumber("Yaw", gyro.getYaw());
+        // pitch and roll are swapped
+        SmartDashboard.putNumber("Pitch", gyro.getRoll()); 
+        SmartDashboard.putNumber("Roll", gyro.getPitch());
     }
 
     /** 
