@@ -4,8 +4,12 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
@@ -13,6 +17,7 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DrivetrainConstants;
 
@@ -28,13 +33,19 @@ public class Drivetrain extends SubsystemBase {
     CANSparkMax rightBackMotor = new CANSparkMax(DrivetrainConstants.kRightBackPort, MotorType.kBrushless);
     CANSparkMax rightTopMotor = new CANSparkMax(DrivetrainConstants.kRightTopPort, MotorType.kBrushless);
 
+    SparkMaxPIDController leftController = leftFrontMotor.getPIDController();
+    SparkMaxPIDController righController = rightFrontMotor.getPIDController();
+
+    RelativeEncoder leftEncoder = leftFrontMotor.getEncoder();
+    RelativeEncoder rightEncoder = rightFrontMotor.getEncoder();
+
     DifferentialDrive drive = new DifferentialDrive(leftFrontMotor, rightFrontMotor);
 
     PigeonIMU gyro = new PigeonIMU(DrivetrainConstants.kPidgeonPort);
 
     // Create gyro and odometry
     DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
-        getRotation2d(), leftFrontMotor.getEncoder().getPosition(), rightFrontMotor.getEncoder().getPosition());
+        getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
 
     public Drivetrain() {
         leftTopMotor.follow(leftFrontMotor);
@@ -50,7 +61,7 @@ public class Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        odometry.update(getRotation2d(), leftFrontMotor.getEncoder().getPosition(), rightFrontMotor.getEncoder().getPosition());
+        odometry.update(getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
         updateShuffleboard();
     }
 
@@ -60,6 +71,24 @@ public class Drivetrain extends SubsystemBase {
         // pitch and roll are swapped
         SmartDashboard.putNumber("Pitch", gyro.getRoll()); 
         SmartDashboard.putNumber("Roll", gyro.getPitch());
+    }
+
+    public CommandBase alignToCharger() {
+        return run(
+            () -> {
+                // left motor
+                new PIDCommand(
+                    new PIDController(0, 0, 0), 
+                    gyro::getRoll, 
+                    0, 
+                    output -> {
+                        leftFrontMotor.set(output);
+                        rightFrontMotor.set(output);
+                    }, 
+                    this
+                );
+            }
+        );
     }
 
     /** 
@@ -98,22 +127,22 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public DifferentialDriveWheelSpeeds getWheelSpeeds() {
-        return new DifferentialDriveWheelSpeeds(leftFrontMotor.getEncoder().getVelocity(), rightFrontMotor.getEncoder().getVelocity());
+        return new DifferentialDriveWheelSpeeds(leftEncoder.getVelocity(), rightEncoder.getVelocity());
     }
     
     public double getAverageEncoderDistance() {
-        return (leftFrontMotor.getEncoder().getPosition() + rightFrontMotor.getEncoder().getPosition()) / 2.0;
+        return (leftEncoder.getPosition() + rightEncoder.getPosition()) / 2.0;
     }
     
     public void resetEncoders() {
-        leftFrontMotor.getEncoder().setPosition(0);
-        rightFrontMotor.getEncoder().setPosition(0);
+        leftEncoder.setPosition(0);
+        rightEncoder.setPosition(0);
     }
 
     public void resetOdometry(Pose2d pose) {
         resetEncoders();
         odometry.resetPosition(
-            getRotation2d(), leftFrontMotor.getEncoder().getPosition(), rightFrontMotor.getEncoder().getPosition(), pose);
+            getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition(), pose);
     }
     /*
      * uses the rotation to find how many degrees the bot is turned

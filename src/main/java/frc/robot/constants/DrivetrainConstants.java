@@ -18,6 +18,7 @@ public class DrivetrainConstants {
     public static final int trackWidthMeters=0;
     public static final int kMaxSpeedMetersPerSecond=0;
     public static final int kMaxAccelerationMetersPerSecondSquared=0;
+    public static final int kGyroAlignError=0;
 
     public static final int kRamseteB=0;
     public static final int kRamseteZeta=0;
