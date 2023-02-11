@@ -47,6 +47,8 @@ public class Drivetrain extends SubsystemBase {
     DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
         getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
 
+    double kP=0, kI=0;
+
     public Drivetrain() {
         leftTopMotor.follow(leftFrontMotor);
         leftBackMotor.follow(leftFrontMotor);
@@ -62,10 +64,11 @@ public class Drivetrain extends SubsystemBase {
     @Override
     public void periodic() {
         odometry.update(getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
-        updateShuffleboard();
+        updateGyroShuffleboard();
+        updatePID();
     }
 
-    void updateShuffleboard() {
+    void updateGyroShuffleboard() {
         /** Gyro **/
         SmartDashboard.putNumber("Yaw", gyro.getYaw());
         // pitch and roll are swapped
@@ -73,12 +76,16 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("Roll", gyro.getPitch());
     }
 
+    void updatePID() {
+        kP = SmartDashboard.getNumber("P", kP);
+        kI = SmartDashboard.getNumber("I", kI);
+    }
+    
     public CommandBase alignToCharger() {
         return run(
             () -> {
-                // left motor
                 new PIDCommand(
-                    new PIDController(0, 0, 0), 
+                    new PIDController(kP, kI, 0), 
                     gyro::getRoll, 
                     0, 
                     output -> {
@@ -90,6 +97,7 @@ public class Drivetrain extends SubsystemBase {
             }
         );
     }
+
 
     /** 
      * sets arcade drive for motors
