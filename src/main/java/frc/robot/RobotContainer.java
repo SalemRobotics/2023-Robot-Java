@@ -29,7 +29,7 @@ public class RobotContainer {
     // Uses joysticks to control the rotation and extension of the arm.
     // Left stick: Extension, Right stick: Rotation
     arm.setDefaultCommand(
-      arm.armRunManaul(driverController::getLeftY, driverController::getRightY)
+      arm.setArmSpeeds(driverController::getLeftY, driverController::getRightY)
     );
   }
 
@@ -38,27 +38,27 @@ public class RobotContainer {
       // Set the arm to the intaking position and run the intake inwards
     new JoystickButton(driverController, Button.kRightBumper.value)
     .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeInSpeed))
-    .onFalse(arm.armSetPreset(ArmPresets.DEFAULT));
+    .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
 
       // Set the arm to the intaking position and run the intake outwards, to eject the game piece
     new JoystickButton(driverController, Button.kLeftBumper.value)
     .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeOutSpeed))
-    .onFalse(arm.armSetPreset(ArmPresets.DEFAULT));
+    .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
 
     /* Operator Controller */
       // Bindings for transforming the arm towards a preset point; 
       // X:Default, A:Low goal, B:Mid goal, Y:High goal
     new JoystickButton(operatorController, Button.kX.value)
-    .onTrue(arm.armSetPreset(ArmPresets.DEFAULT));
+    .onTrue(arm.setTargetPoint(ArmPresets.DEFAULT));
 
     new JoystickButton(operatorController, Button.kA.value)
-    .onTrue(arm.armSetPreset(ArmPresets.LOW_GOAL));
+    .onTrue(arm.setTargetPoint(ArmPresets.LOW_GOAL));
 
     new JoystickButton(operatorController, Button.kB.value)
-    .onTrue(arm.armSetPreset(ArmPresets.MID_GOAL));
+    .onTrue(arm.setTargetPoint(ArmPresets.MID_GOAL));
 
     new JoystickButton(operatorController, Button.kY.value)
-    .onTrue(arm.armSetPreset(ArmPresets.HIGH_GOAL));
+    .onTrue(arm.setTargetPoint(ArmPresets.HIGH_GOAL));
 
       // Used to release the game piece without moving the arm
     new JoystickButton(operatorController, Button.kRightBumper.value)

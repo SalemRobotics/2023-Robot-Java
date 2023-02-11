@@ -102,8 +102,8 @@ public class Arm extends SubsystemBase {
      * Moves the position of the {@link Arm} subsystem to the desired preset position.
      * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
      */
-    public CommandBase armSetPreset(ArmPresets point) {
-        return runOnce(
+    public CommandBase setTargetPoint(ArmPresets point) {
+        return run(
             () -> {
                 setTargetPoint(point.value);
             }
@@ -116,10 +116,11 @@ public class Arm extends SubsystemBase {
      * @param extension the speed to extend at
      * @param rotation the speed to pivot at
      */
-    public CommandBase armRunManaul(DoubleSupplier extension, DoubleSupplier rotation) {
+    public CommandBase setArmSpeeds(DoubleSupplier extension, DoubleSupplier rotation) {
         return run(
             () -> {
                 setArmSpeeds(extension.getAsDouble(), rotation.getAsDouble());
+                limitResetEncoders();
             }
         );
     }
@@ -153,7 +154,7 @@ public class Arm extends SubsystemBase {
      * @param ext the speed to extend at
      * @param rot the speed to pivot at
      */
-    public void setArmSpeeds(double ext, double rot) {
+    void setArmSpeeds(double ext, double rot) {
         if (isAtLimit(pivotEncoder.getDistance(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
             pivotController.setReference(0.0, ControlType.kVelocity);
         else 
@@ -171,7 +172,7 @@ public class Arm extends SubsystemBase {
      * Sets the target position for the end effector to travel towards.
      * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
      */
-    public void setTargetPoint(Point point) {
+    void setTargetPoint(Point point) {
         double angle = Math.atan(point.y/point.x);
         double distance = Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
         
