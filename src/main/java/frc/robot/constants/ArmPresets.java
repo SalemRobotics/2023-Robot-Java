@@ -27,6 +27,6 @@ public enum ArmPresets {
         this.x = x;
         this.y = y;
     }
-
+    
     public final Point value = new Point(x, y);
 }

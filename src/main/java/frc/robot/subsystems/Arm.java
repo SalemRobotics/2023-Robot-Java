@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 
 import org.opencv.core.Point;
@@ -10,12 +11,16 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.SparkMaxPIDController;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotProperties;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.ArmPresets;
 
@@ -41,13 +46,22 @@ public class Arm extends SubsystemBase {
     SparkMaxPIDController pivotController;
     SparkMaxPIDController extensionController;
 
-    double kPivotP, kPivotI, kPivotD,
-        kPivotIz, kPivotFF, kPivotMaxOutput, kPivotMinOutput,
-        kPivotMaxVel, kPivotMinVel, kPivotMaxAcc, kPivotAllowedErr;
+    ArmFeedforward pivotFeedforward;
+        // TODO: multiply kG by cosine of the arm's angle relative to being vertical
+    ElevatorFeedforward extenstionFeedforward; 
 
-    double kExtP, kExtI, kExtD, 
-        kExtIz, kExtFF, kExtMaxOutput, kExtMinOutput,
-        kExtMaxVel, kExtMinVel, kExtMaxAcc, kExtAllowedErr;
+    HashMap<String, Double> pivotMap;
+    HashMap<String, Double> extensionMap;
+
+    TrapezoidProfile.Constraints pivotConstraints = new TrapezoidProfile.Constraints(0, 0);
+    TrapezoidProfile.State pivotGoal = new TrapezoidProfile.State();
+    TrapezoidProfile.State pivotCurrPoint = new TrapezoidProfile.State();
+    TrapezoidProfile pivotProfile;
+
+    TrapezoidProfile.Constraints extensionConstraints = new TrapezoidProfile.Constraints(0, 0);
+    TrapezoidProfile.State extensionGoal = new TrapezoidProfile.State();
+    TrapezoidProfile.State extensionCurrPoint = new TrapezoidProfile.State();
+    TrapezoidProfile extensionProfile;
     
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
@@ -58,54 +72,31 @@ public class Arm extends SubsystemBase {
         pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
         extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
 
-        // Pivot Loop Consts 
-        // TODO: Profile arm to get the below values. Currently default.
-        kPivotP = 0.1; 
-        kPivotI = 1e-4;
-        kPivotD = 1; 
-        kPivotIz = 0; 
-        kPivotFF = 0; 
-        kPivotMaxOutput = 1; 
-        kPivotMinOutput = -1;
+        pivotMap = RobotProperties.loadPIDConstants("PivotPID", pivotController);
+        pivotFeedforward = new ArmFeedforward(
+            pivotMap.get("kS"),
+            pivotMap.get("kG"),
+            pivotMap.get("kV"),
+            pivotMap.get("kA")
+        );
 
-        pivotController = pivotMotor1.getPIDController();
-        pivotController.setP(kPivotP);
-        pivotController.setI(kPivotI);
-        pivotController.setD(kPivotD);
-        pivotController.setIZone(kPivotIz);
-        pivotController.setFF(kPivotFF);
-        pivotController.setOutputRange(kPivotMinOutput, kPivotMaxOutput);
-
-        // Extension Loop Consts
-        // TODO: Profile arm to get the below values. Currently default.
-        kExtP = 0.1; 
-        kExtI = 1e-4;
-        kExtD = 1; 
-        kExtIz = 0; 
-        kExtFF = 0; 
-        kExtMaxOutput = 1; 
-        kExtMinOutput = -1;
-
-        extensionController = extensionMotor.getPIDController();
-        extensionController.setP(kExtP);
-        extensionController.setI(kExtI);
-        extensionController.setD(kExtD);
-        extensionController.setIZone(kExtIz);
-        extensionController.setFF(kExtFF);
-        extensionController.setOutputRange(kExtMinOutput, kExtMaxOutput);
-
-        // RobotProperties.loadPIDConstants("PivotPID", pivotController);
-        // RobotProperties.loadPIDConstants("ExtensionPID", extensionController);
+        extensionMap = RobotProperties.loadPIDConstants("ExtensionPID", extensionController);
+        extenstionFeedforward = new ElevatorFeedforward(
+            extensionMap.get("kS"),
+            extensionMap.get("kG"),
+            extensionMap.get("kV"),
+            extensionMap.get("kA")
+        );
     }
     
     /**
      * Moves the position of the {@link Arm} subsystem to the desired preset position.
-     * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
+     * @param preset A {@link Point} object representing a point in cartesian coordinate space to move to.
      */
-    public CommandBase setTargetPoint(ArmPresets point) {
+    public CommandBase setTargetPoint(ArmPresets preset) {
         return run(
             () -> {
-                setTargetPoint(point.value);
+                setTargetPoint(preset.value);
             }
         );
     }
@@ -156,16 +147,16 @@ public class Arm extends SubsystemBase {
      */
     void setArmSpeeds(double ext, double rot) {
         if (isAtLimit(pivotEncoder.getDistance(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
-            pivotController.setReference(0.0, ControlType.kVelocity);
+            pivotMotor1.set(0.0);
         else 
-            pivotController.setReference(rot, ControlType.kVelocity);
+            pivotMotor1.set(rot);
 
         if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
-            extensionController.setReference(-1.0, ControlType.kVelocity);
+            extensionMotor.set(-1.0);
         else if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
-            extensionController.setReference(0.0, ControlType.kVelocity);
+            extensionMotor.set(0.0);
         else
-            extensionController.setReference(ext, ControlType.kVelocity);
+            extensionMotor.set(ext);
     }
 
     /**
@@ -192,8 +183,22 @@ public class Arm extends SubsystemBase {
             return;
         }
 
-        pivotController.setReference(angle, ControlType.kSmartMotion);
-        extensionController.setReference(distance - baseLength, ControlType.kSmartMotion);
+        pivotGoal.position = angle;
+        extensionGoal.position = distance - baseLength;
+        
+        pivotProfile = new TrapezoidProfile(pivotConstraints, pivotGoal, pivotCurrPoint);
+        extensionProfile = new TrapezoidProfile(extensionConstraints, extensionGoal, extensionCurrPoint);
+
+        pivotCurrPoint = pivotProfile.calculate(0.02);
+        extensionCurrPoint = extensionProfile.calculate(0.02);
+
+        pivotController.setReference(pivotCurrPoint.position, ControlType.kPosition, 0, 
+            pivotFeedforward.calculate(pivotEncoder.getDistance(), 0)
+        );
+
+        extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
+            (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(angle))
+        );
     }
 
     /**
@@ -216,71 +221,24 @@ public class Arm extends SubsystemBase {
 
     @Override
     public void periodic() {
-        updatePivotConsts();
-        updateExtensionConsts();
+        updateShuffleboard(pivotMap, pivotController);
+        updateShuffleboard(extensionMap, extensionController);
     }
 
-    /**
-     * Reads and allows editing of PID constants for the pivot PID controller from shuffleboard <p>
-     * TODO: once satisfied with constants, read them from a file instead of shuffleboard
-     */
-    void updatePivotConsts() {
-        double p = SmartDashboard.getNumber("Error Multiplier (P)", kPivotP);
-        double i = SmartDashboard.getNumber("Sum Error (I)", kPivotI);
-        double d = SmartDashboard.getNumber("Slope Error (D)", kPivotD);
-        double iz = SmartDashboard.getNumber("Integral Effective Error Range (IZone)", kPivotIz);
-        double ff = SmartDashboard.getNumber("Control Loop Gain (Feed Forward)", kPivotFF);
-        double min = SmartDashboard.getNumber("Min Output", kPivotMinOutput);
-        double max = SmartDashboard.getNumber("Max Output", kPivotMaxOutput);
-        double minV = SmartDashboard.getNumber("Min Velocity", kPivotMinVel);
-        double maxV = SmartDashboard.getNumber("Max Velocity", kPivotMaxVel);
-        double maxA = SmartDashboard.getNumber("Max Acceleration", kPivotMaxAcc);
-        double allE = SmartDashboard.getNumber("Allowed Closed Loop Error", kPivotAllowedErr); 
+    void updateShuffleboard(HashMap<String, Double> map, SparkMaxPIDController controller) {
+        double p = SmartDashboard.getNumber("kP", map.get("kP"));
+        double i = SmartDashboard.getNumber("kI", map.get("kI"));
+        double d = SmartDashboard.getNumber("kD", map.get("kD"));
+        double iz = SmartDashboard.getNumber("Izone", map.get("kIz"));
 
-        if (p != kPivotP) { pivotController.setP(p); kPivotP = p; }
-        if (i != kPivotI) { pivotController.setI(i); kPivotI = i; }
-        if (d != kPivotD) { pivotController.setD(d); kPivotD = d; }
-        if (iz != kPivotIz) { pivotController.setIZone(iz); kPivotIz = iz; }
-        if (ff != kPivotFF) { pivotController.setFF(p); kPivotFF = ff; }
-        if ((max != kPivotMaxOutput) || (min != kPivotMinOutput)) {
-            pivotController.setOutputRange(min, max);
-            kPivotMinOutput = min; kPivotMaxOutput = max;
-        }
-        if (maxV != kPivotMaxVel) { pivotController.setSmartMotionMaxVelocity(maxV, 0); kPivotMaxVel = maxV; }
-        if (minV != kPivotMinVel) { pivotController.setSmartMotionMinOutputVelocity(minV, 0); kPivotMinVel = minV; }
-        if (maxA != kPivotMaxAcc) { pivotController.setSmartMotionMaxAccel(maxA, 0); kPivotMaxAcc = maxA; }
-        if (allE != kPivotAllowedErr) { pivotController.setSmartMotionAllowedClosedLoopError(allE, 0); kPivotAllowedErr = allE; }
-    }
-
-    /**
-     * Reads and allows editing of PID constants for the extension PID controller from shuffleboard <p>
-     * TODO: once satisfied with constants, read them from a file instead of shuffleboard
-     */
-    void updateExtensionConsts() {
-        double p =SmartDashboard.getNumber("Error Multiplier (P)", kExtP);
-        double i =SmartDashboard.getNumber("Sum Error (I)", kExtI);
-        double d =SmartDashboard.getNumber("Slope Error (D)", kExtD);
-        double iz =SmartDashboard.getNumber("Integral Effective Error Range (IZone)", kExtIz);
-        double ff =SmartDashboard.getNumber("Control Loop Gain (Feed Forward)", kExtFF);
-        double min =SmartDashboard.getNumber("Min Output", kExtMinOutput);
-        double max =SmartDashboard.getNumber("Max Output", kExtMaxOutput);
-        double minV = SmartDashboard.getNumber("Min Velocity", kExtMinVel);
-        double maxV = SmartDashboard.getNumber("Max Velocity", kExtMaxVel);
-        double maxA = SmartDashboard.getNumber("Max Acceleration", kExtMaxAcc);
-        double allE = SmartDashboard.getNumber("Allowed Closed Loop Error", kExtAllowedErr); 
-
-        if (p != kExtP) { extensionController.setP(p); kExtP = p; }
-        if (i != kExtI) { extensionController.setI(i); kExtI = i; }
-        if (d != kExtD) { extensionController.setD(d); kExtD = d; }
-        if (iz != kExtIz) { extensionController.setIZone(iz); kExtIz = iz; }
-        if (ff != kExtFF) { extensionController.setFF(p); kExtFF = ff; }
-        if ((max != kExtMaxOutput) || (min != kExtMinOutput)) {
-            extensionController.setOutputRange(min, max);
-            kExtMinOutput = min; kExtMaxOutput = max;
-        }
-        if (maxV != kExtMaxVel) { extensionController.setSmartMotionMaxVelocity(maxV, 0); kExtMaxVel = maxV; }
-        if (minV != kExtMinVel) { extensionController.setSmartMotionMinOutputVelocity(minV, 0); kExtMinVel = minV; }
-        if (maxA != kExtMaxAcc) { extensionController.setSmartMotionMaxAccel(maxA, 0); kExtMaxAcc = maxA; }
-        if (allE != kExtAllowedErr) { extensionController.setSmartMotionAllowedClosedLoopError(allE, 0); kExtAllowedErr = allE; }
+        if (p != map.get("kP")) controller.setP(p);
+        if (i != map.get("kI")) controller.setI(i);
+        if (d != map.get("kD")) controller.setD(d);
+        if (iz != map.get("kIz")) controller.setIZone(iz);
+        
+        SmartDashboard.putNumber("kS", map.get("kS"));
+        SmartDashboard.putNumber("kG", map.get("kG"));
+        SmartDashboard.putNumber("kV", map.get("kV"));
+        SmartDashboard.putNumber("kA", map.get("kA"));
     }
 }

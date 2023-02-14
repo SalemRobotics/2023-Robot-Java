@@ -48,6 +48,11 @@ public class RobotContainer {
     /* Operator Controller */
       // Bindings for transforming the arm towards a preset point; 
       // X:Default, A:Low goal, B:Mid goal, Y:High goal
+
+      // Toggle whether the Arm is in Cone mode
+    new JoystickButton(operatorController, Button.kStart.value)
+    .toggleOnTrue(null);
+
     new JoystickButton(operatorController, Button.kX.value)
     .onTrue(arm.setTargetPoint(ArmPresets.DEFAULT));
 
