@@ -17,9 +17,14 @@ public enum ArmPresets {
 
     DEFAULT(0, 0),
     INTAKE(0, 0),
-    LOW_GOAL(0, 0),
-    MID_GOAL(0, 0),
-    HIGH_GOAL(0, 0);
+
+    CUBE_LOW_GOAL(0, 0),
+    CUBE_MID_GOAL(0, 0),
+    CUBE_HIGH_GOAL(0, 0),
+
+    CONE_LOW_GOAL(0, 0),
+    CONE_MID_GOAL(0, 0),
+    CONE_HIGH_GOAL(0, 0);
 
     private double x, y;
 

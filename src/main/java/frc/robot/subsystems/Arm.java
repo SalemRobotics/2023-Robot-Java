@@ -30,6 +30,8 @@ import frc.robot.constants.ArmPresets;
  * Uses 3 NEO motors, 1 absolute encoder and 1 quadrature encoder.
  */
 public class Arm extends SubsystemBase {
+    public boolean isConeMode;
+
     CANSparkMax pivotMotor1 = new CANSparkMax(ArmConstants.kPivotPort1, MotorType.kBrushless);
     CANSparkMax pivotMotor2 = new CANSparkMax(ArmConstants.kPivotPort2, MotorType.kBrushless);
 
