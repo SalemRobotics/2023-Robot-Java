@@ -199,7 +199,7 @@ public class Arm extends SubsystemBase {
         );
 
         extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
-            (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(angle))
+            (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(pivotCurrPoint.position))
         );
     }
 
