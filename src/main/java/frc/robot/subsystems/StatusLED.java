@@ -68,7 +68,9 @@ public class StatusLED extends SubsystemBase {
                     }
                 }
             }, 
-            null, 
+            isFinished -> {
+                timer.stop();
+            }, 
             null, 
             this
         );
@@ -77,12 +79,26 @@ public class StatusLED extends SubsystemBase {
     CommandBase interpolateStripColor(Color a, Color b) {
         return new FunctionalCommand(
             () -> { // init
-                
+                setStripColorRGB(b);
+                timer.reset();
+                timer.start();
+                isOn = true;
             }, 
             () -> { // exec
-
+                Color lerpColor;
+                if (isOn) {
+                    lerpColor = LEDColor.lerpRGB(a, b, timer.get());
+                    setStripColorRGB(lerpColor);
+                    isOn = !lerpColor.equals(b);
+                } else {
+                    lerpColor = LEDColor.lerpRGB(b, a, timer.get());
+                    setStripColorRGB(lerpColor);
+                    isOn = lerpColor.equals(a);
+                }
             }, 
-            null, 
+            isFinished -> {
+                timer.stop();
+            }, 
             null, 
             this
         );
@@ -104,13 +120,13 @@ public class StatusLED extends SubsystemBase {
             () -> { // exec
                 if (isOn) {
                     hsvColor.value = hsvColor.value != 0 ? hsvColor.value -= speed : 0;
-                    isOn = !hsvColor.equals(Color.kBlack);
                     setStripColorHSV(hsvColor);
+                    isOn = !hsvColor.equals(Color.kBlack);
                 }
                 else {
                     hsvColor.value = hsvColor.value != 1 ? hsvColor.value += speed : 1;
-                    isOn = hsvColor.equals(color);
                     setStripColorHSV(hsvColor);
+                    isOn = hsvColor.equals(color);
                 }
             },
             null,

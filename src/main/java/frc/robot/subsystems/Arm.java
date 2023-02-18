@@ -112,7 +112,7 @@ public class Arm extends SubsystemBase {
     public CommandBase setArmSpeeds(DoubleSupplier extension, DoubleSupplier rotation) {
         return run(
             () -> {
-                setArmSpeeds(extension.getAsDouble(), rotation.getAsDouble());
+                setArmSpeeds(extension.getAsDouble()/2, rotation.getAsDouble()/2);
                 limitResetEncoders();
             }
         );
