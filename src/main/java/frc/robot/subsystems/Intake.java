@@ -22,7 +22,7 @@ public class Intake extends SubsystemBase {
      */
     public CommandBase intakeRun(double speed) {
         return new FunctionalCommand(
-            null,
+            ()->{},
 
             // execute
             () -> { motor.set(speed); },

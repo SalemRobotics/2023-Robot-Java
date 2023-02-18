@@ -8,6 +8,7 @@ import java.util.Properties;
 import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 
 /**
  * Class to load and read properties relating to systems of the robot (particularly PID).
@@ -29,7 +30,7 @@ public class RobotProperties extends Properties {
    * @return A hashmap containing each of the individual constants.
    */
     public static HashMap<String, Double> loadPIDConstants(String groupname, SparkMaxPIDController controller) {
-        try (FileInputStream file = new FileInputStream("constants/PIDConstants.properties")) {
+        try (FileInputStream file = new FileInputStream(Filesystem.getDeployDirectory().toPath().resolve("PIDConstants.properties").toString())) {
             RobotProperties properties = new RobotProperties();
             properties.load(file);
             

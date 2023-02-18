@@ -30,7 +30,7 @@ public class RobotContainer {
     // Uses joysticks to control the rotation and extension of the arm.
     // Left stick: Extension, Right stick: Rotation
     arm.setDefaultCommand(
-      arm.setArmSpeeds(driverController::getLeftY, driverController::getRightY)
+      arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY)
     );
   }
 

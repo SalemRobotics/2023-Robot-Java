@@ -8,6 +8,7 @@ import org.opencv.core.Point;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.ControlType;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.SparkMaxPIDController;
 
@@ -45,8 +46,8 @@ public class Arm extends SubsystemBase {
     DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kEncoderSwitchMinChannel);
     DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kEncoderSwitchMaxChannel);
 
-    SparkMaxPIDController pivotController;
-    SparkMaxPIDController extensionController;
+    SparkMaxPIDController pivotController = pivotMotor1.getPIDController();
+    SparkMaxPIDController extensionController = extensionMotor.getPIDController();
 
     ArmFeedforward pivotFeedforward;
         // TODO: multiply kG by cosine of the arm's angle relative to being vertical
@@ -69,7 +70,10 @@ public class Arm extends SubsystemBase {
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
      */
     public Arm() {
+        pivotMotor1.setIdleMode(IdleMode.kBrake);
         pivotMotor2.follow(pivotMotor1);
+
+        extensionMotor.setIdleMode(IdleMode.kBrake);
 
         pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
         extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
@@ -113,7 +117,7 @@ public class Arm extends SubsystemBase {
         return run(
             () -> {
                 setArmSpeeds(extension.getAsDouble()/2, rotation.getAsDouble()/2);
-                limitResetEncoders();
+                // limitResetEncoders();
             }
         );
     }
@@ -127,7 +131,8 @@ public class Arm extends SubsystemBase {
      * @return true if limit is reached
      */
     boolean isAtLimit(double encoderPosition, double min, double max, double requestedSpeed) {
-        return (encoderPosition >= max && requestedSpeed > 0) || (encoderPosition <= min && requestedSpeed < 0);
+        // return (encoderPosition >= max && requestedSpeed > 0) || (encoderPosition <= min && requestedSpeed < 0);
+        return false;
     }
 
     /**
@@ -153,9 +158,9 @@ public class Arm extends SubsystemBase {
         else 
             pivotMotor1.set(rot);
 
-        if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
-            extensionMotor.set(-1.0);
-        else if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
+        // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
+        //     extensionMotor.set(-1.0);
+        if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
             extensionMotor.set(0.0);
         else
             extensionMotor.set(ext);
