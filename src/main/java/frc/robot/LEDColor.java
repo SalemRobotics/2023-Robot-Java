@@ -3,7 +3,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.util.Color;
 
 /**
- * Wrapper class for WPILib {@link Color}
+ * Utility class for colors based on WPILib {@link Color}
  */
 public class LEDColor extends Color {
 

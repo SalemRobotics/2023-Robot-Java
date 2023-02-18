@@ -35,6 +35,10 @@ public class StatusLED extends SubsystemBase {
         led.setData(ledBuffer);
     }
 
+    /**
+     * Sets a solid color for the Whole LED strip.
+     * @param color An HSV {@linkplain LEDColor}
+     */
     void setStripColorHSV(LEDColor color) {
         for (int i=0; i < ledBuffer.getLength(); i++) {
             ledBuffer.setHSV(i, (int)color.hue, (int)color.saturation, (int)color.value);
@@ -71,11 +75,17 @@ public class StatusLED extends SubsystemBase {
             isFinished -> {
                 timer.stop();
             }, 
-            null, 
+            () -> { return false; },
             this
         );
     }
 
+    /**
+     * Linearly interpolates back and forth between two colors. 
+     * @param a First {@link Color}
+     * @param b Second {@link Color}
+     * @return A {@link FunctionalCommand}
+     */
     CommandBase interpolateStripColor(Color a, Color b) {
         return new FunctionalCommand(
             () -> { // init
@@ -99,7 +109,7 @@ public class StatusLED extends SubsystemBase {
             isFinished -> {
                 timer.stop();
             }, 
-            null, 
+            () -> { return false; }, 
             this
         );
     }
@@ -129,8 +139,8 @@ public class StatusLED extends SubsystemBase {
                     isOn = hsvColor.equals(color);
                 }
             },
-            null,
-            null,
+            isFinished -> {},
+            () -> { return false; },
             this
         );
     }
