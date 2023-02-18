@@ -14,6 +14,8 @@ public class StatusLED extends SubsystemBase {
     AddressableLED led = new AddressableLED(LEDConstants.ledPort);
     AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(LEDConstants.ledLength);
 
+    Timer timer = new Timer();
+
     boolean isOn = false;
     
     public StatusLED() {
@@ -48,10 +50,10 @@ public class StatusLED extends SubsystemBase {
      * @return a {@link FunctionalCommand}
      */
     CommandBase blinkStripColor(Color color1, Color color2, double interval) {
-        Timer timer = new Timer();
         return new FunctionalCommand(
             () -> { // init
                 setStripColorRGB(color1);
+                timer.reset();
                 timer.start();
                 isOn = true;
             }, 
