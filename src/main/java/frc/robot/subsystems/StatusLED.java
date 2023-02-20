@@ -10,6 +10,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LEDColor;
 import frc.robot.constants.LEDConstants;
 
+/**
+ * Subsystem to control Addressable LED strips using Commands.
+ */
 public class StatusLED extends SubsystemBase {
     AddressableLED led = new AddressableLED(LEDConstants.ledPort);
     AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(LEDConstants.ledLength);
@@ -22,28 +25,6 @@ public class StatusLED extends SubsystemBase {
         led.setLength(ledBuffer.getLength());
         led.setData(ledBuffer);
         led.start();
-    }
-
-    /**
-     * Sets a solid color for the whole LED strip. 
-     * @param color an RGB {@link Color}
-     */
-    void setStripColorRGB(Color color) {
-        for (int i=0; i < ledBuffer.getLength(); i++) {
-            setRGB(i, color);
-        }
-        led.setData(ledBuffer);
-    }
-
-    /**
-     * Sets a solid color for the Whole LED strip.
-     * @param color An HSV {@linkplain LEDColor}
-     */
-    void setStripColorHSV(LEDColor color) {
-        for (int i=0; i < ledBuffer.getLength(); i++) {
-            ledBuffer.setHSV(i, (int)color.hue, (int)color.saturation, (int)color.value);
-        }
-        led.setData(ledBuffer);
     }
 
     /**
@@ -143,6 +124,28 @@ public class StatusLED extends SubsystemBase {
             () -> { return false; },
             this
         );
+    }
+
+    /**
+     * Sets a solid color for the whole LED strip. 
+     * @param color an RGB {@link Color}
+     */
+    void setStripColorRGB(Color color) {
+        for (int i=0; i < ledBuffer.getLength(); i++) {
+            setRGB(i, color);
+        }
+        led.setData(ledBuffer);
+    }
+
+    /**
+     * Sets a solid color for the Whole LED strip.
+     * @param color An HSV {@linkplain LEDColor}
+     */
+    void setStripColorHSV(LEDColor color) {
+        for (int i=0; i < ledBuffer.getLength(); i++) {
+            ledBuffer.setHSV(i, (int)color.hue, (int)color.saturation, (int)color.value);
+        }
+        led.setData(ledBuffer);
     }
 
     /**

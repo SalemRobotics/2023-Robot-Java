@@ -59,12 +59,19 @@ public class LEDColor extends Color {
         calcRGB();
     }
 
+    public void setHSV(int h, int s, int v) {
+        hue=h;
+        saturation=s;
+        value=v;
+        calcRGB();
+    }
+
     /**
      * Linearly interpolates between two colors over time.
      * @param a First {@link Color}
      * @param b Second {@link Color}
-     * @param t Time
-     * @return The product color.
+     * @param t Time, in seconds
+     * @return The calculated color at t seconds
      */
     public static Color lerpRGB(Color a, Color b, double t) {
         return new Color(
