@@ -24,7 +24,8 @@ import frc.robot.subsystems.Drivetrain;
  * the driveKinematics object
  */
 public class TrajectoryDriveCommand extends CommandBase{  
-    private final DifferentialDriveKinematics driveKinematics = 
+    
+    final DifferentialDriveKinematics driveKinematics = 
     new DifferentialDriveKinematics(DrivetrainConstants.trackWidthMeters);
 
     /**
