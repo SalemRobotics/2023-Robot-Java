@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.LimelightHelpers;
 import frc.robot.constants.DrivetrainConstants;
 
 /**
@@ -109,6 +110,14 @@ public class Drivetrain extends SubsystemBase {
         );
     }
 
+    public CommandBase alignToApriltag() {
+        return run(
+            () -> {
+                double targetAngle = LimelightHelpers.getPythonScriptData("limelight")[1];
+                drive.arcadeDrive(0.0, -Math.max(-1, Math.min(1, targetAngle)), true); 
+            }
+        );
+    }
 
     /** 
      * Sets arcade drive for both sides of the drivetrain.
@@ -195,8 +204,8 @@ public class Drivetrain extends SubsystemBase {
     /*
      * Pigeon gyro rotation in degrees.
      */
-    public void getHeading() {
-        getRotation2d().getDegrees();
+    public double getHeading() {
+        return getRotation2d().getDegrees();
     }
 
     /**
