@@ -16,16 +16,22 @@ import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.XBConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-  final XboxController driverController = new XboxController(XBConstants.drivePort);
-  final XboxController operatorController = new XboxController(XBConstants.opPort);
+  final XboxController driverController = new XboxController(XBConstants.kDriverPort);
+  final XboxController operatorController = new XboxController(XBConstants.kOperatorPort);
   
+  final Drivetrain drivetrain = new Drivetrain();
   final Arm arm = new Arm();
   final Intake intake = new Intake();
 
   public RobotContainer() {
     configureBindings();
+
+    drivetrain.setDefaultCommand(
+      drivetrain.arcadeDrive(driverController::getLeftY, driverController::getRightX)
+    );
 
     // Uses joysticks to control the rotation and extension of the arm.
     // Left stick: Extension, Right stick: Rotation
