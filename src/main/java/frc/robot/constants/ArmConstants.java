@@ -2,7 +2,7 @@ package frc.robot.constants;
 
 public class ArmConstants {
     public static final int kExtensionPort = 4;
-    public static final int kPivotPort1 = 5;        
+    public static final int kPivotPort1 = 5;
     public static final int kPivotPort2 = 6;
         
     public static final int kPivotEncoderSourceA = 1;

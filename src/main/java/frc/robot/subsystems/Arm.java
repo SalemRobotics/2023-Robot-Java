@@ -71,6 +71,7 @@ public class Arm extends SubsystemBase {
      */
     public Arm() {
         pivotMotor1.setIdleMode(IdleMode.kBrake);
+        pivotMotor2.setIdleMode(IdleMode.kBrake);
         pivotMotor2.follow(pivotMotor1);
 
         extensionMotor.setIdleMode(IdleMode.kBrake);
@@ -116,7 +117,7 @@ public class Arm extends SubsystemBase {
     public CommandBase setArmSpeeds(DoubleSupplier extension, DoubleSupplier rotation) {
         return run(
             () -> {
-                setArmSpeeds(extension.getAsDouble()/2, rotation.getAsDouble()/2);
+                setArmSpeeds(extension.getAsDouble(), rotation.getAsDouble());
                 // limitResetEncoders();
             }
         );

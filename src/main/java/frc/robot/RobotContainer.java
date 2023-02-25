@@ -30,7 +30,7 @@ public class RobotContainer {
     configureBindings();
 
     drivetrain.setDefaultCommand(
-      drivetrain.arcadeDrive(driverController::getLeftY, driverController::getRightX)
+      drivetrain.arcadeDrive(driverController::getRightX, driverController::getLeftY)
     );
 
     // Uses joysticks to control the rotation and extension of the arm.
