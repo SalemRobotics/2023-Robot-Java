@@ -16,6 +16,7 @@ import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.XBConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.StatusLED;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
@@ -25,6 +26,8 @@ public class RobotContainer {
   final Drivetrain drivetrain = new Drivetrain();
   final Arm arm = new Arm();
   final Intake intake = new Intake();
+
+  final StatusLED led = new StatusLED();
 
   public RobotContainer() {
     configureBindings();

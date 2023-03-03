@@ -17,7 +17,6 @@ import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -38,7 +37,7 @@ public class Arm extends SubsystemBase {
 
     CANSparkMax extensionMotor = new CANSparkMax(ArmConstants.kExtensionPort, MotorType.kBrushless);
 
-    Encoder pivotEncoder = new Encoder(ArmConstants.kPivotEncoderSourceA, ArmConstants.kPivotEncoderSourceB);
+    RelativeEncoder pivotEncoder = pivotMotor1.getEncoder();
     RelativeEncoder extensionEncoder = extensionMotor.getEncoder();
 
     DigitalInput pivotSwitchMin = new DigitalInput(ArmConstants.kPivotSwitchMinChannel);
@@ -76,8 +75,8 @@ public class Arm extends SubsystemBase {
 
         extensionMotor.setIdleMode(IdleMode.kBrake);
 
-        pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
-        extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
+        // pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
+        // extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
 
         pivotMap = RobotProperties.loadPIDConstants("PivotPID", pivotController);
         pivotFeedforward = new ArmFeedforward(
@@ -141,7 +140,7 @@ public class Arm extends SubsystemBase {
      */
     void limitResetEncoders() {
         if (pivotSwitchMin.get() || pivotSwitchMax.get()) {
-            pivotEncoder.reset();
+            pivotEncoder.setPosition(0);
         }
         if (encoderSwitchMin.get() || encoderSwitchMax.get()) {
             extensionEncoder.setPosition(0);
@@ -154,7 +153,7 @@ public class Arm extends SubsystemBase {
      * @param rot the speed to pivot at
      */
     void setArmSpeeds(double ext, double rot) {
-        if (isAtLimit(pivotEncoder.getDistance(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
+        if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
             pivotMotor1.set(0.0);
         else 
             pivotMotor1.set(rot);
@@ -201,7 +200,7 @@ public class Arm extends SubsystemBase {
         extensionCurrPoint = extensionProfile.calculate(0.02);
 
         pivotController.setReference(pivotCurrPoint.position, ControlType.kPosition, 0, 
-            pivotFeedforward.calculate(pivotEncoder.getDistance(), 0)
+            pivotFeedforward.calculate(pivotEncoder.getPosition()+ArmConstants.kPivotAngleOffset, 0)
         );
 
         extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
@@ -222,13 +221,18 @@ public class Arm extends SubsystemBase {
         // the length of the arm and end effector after transformations
         double extensionLength = baseLength + extensionEncoder.getPosition();
         
-        point.x = extensionLength * Math.cos(pivotEncoder.getDistance());
-        point.y = extensionLength * Math.sin(pivotEncoder.getDistance());
+        point.x = extensionLength * Math.cos(pivotEncoder.getPosition());
+        point.y = extensionLength * Math.sin(pivotEncoder.getPosition());
         return point;
     }
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("Pivot", pivotEncoder.getPosition());
+        SmartDashboard.putNumber("Extension", extensionEncoder.getPosition());
+        
+        SmartDashboard.putNumber("Bus Voltage", pivotMotor1.getAppliedOutput());
+
         updateShuffleboard(pivotMap, pivotController);
         updateShuffleboard(extensionMap, extensionController);
     }
