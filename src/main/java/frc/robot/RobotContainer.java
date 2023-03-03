@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.IntakePresetCommand;
 import frc.robot.constants.ArmPresets;
@@ -56,24 +55,14 @@ public class RobotContainer {
     .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
 
     /* Operator Controller */
-      // Bindings for transforming the arm towards a preset point; 
-      // X:Default, A:Low goal, B:Mid goal, Y:High goal
-
-      // Toggle whether the Arm is in Cone mode
-    new JoystickButton(operatorController, Button.kStart.value)
-    .toggleOnTrue(new InstantCommand( () -> { arm.isConeMode = !arm.isConeMode; } ));
-
-    new JoystickButton(operatorController, Button.kX.value)
-    .onTrue(arm.setTargetPoint(ArmPresets.DEFAULT));
-
     new JoystickButton(operatorController, Button.kA.value)
-    .onTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_LOW_GOAL : ArmPresets.CUBE_LOW_GOAL));
+    .toggleOnTrue(led.testBlinkColor());
 
     new JoystickButton(operatorController, Button.kB.value)
-    .onTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_MID_GOAL : ArmPresets.CUBE_MID_GOAL));
+    .onTrue(led.testBreathColor());
 
-    new JoystickButton(operatorController, Button.kY.value)
-    .onTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_HIGH_GOAL : ArmPresets.CUBE_HIGH_GOAL));
+    new JoystickButton(operatorController, Button.kX.value)
+    .onTrue(led.testLerpColor());
 
       // Used to release the game piece without moving the arm
     new JoystickButton(operatorController, Button.kRightBumper.value)
