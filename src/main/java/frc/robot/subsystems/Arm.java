@@ -80,18 +80,7 @@ public class Arm extends SubsystemBase {
         );
     }
     
-    /**
-     * Moves the position of the {@link Arm} subsystem to the desired preset position.
-     * @param preset A {@link Point} object representing a point in cartesian coordinate space to move to.
-     */
-    public CommandBase setTargetPoint(ArmPresets preset) {
-        return run(
-            () -> {
-                setTargetPoint();
-            }
-        );
-    }
-
+    
     /**
      * Moves the position of the {@link Arm} subsystem using manual operator controls. <p>
      * Gives the ability to control both rotation and extension of the arm.
@@ -101,8 +90,35 @@ public class Arm extends SubsystemBase {
     public CommandBase setArmSpeeds(DoubleSupplier extension, DoubleSupplier rotation) {
         return run(
             () -> {
-                setArmSpeeds(extension.getAsDouble(), rotation.getAsDouble());
-                // limitResetEncoders();
+                double rot = rotation.getAsDouble();
+                double ext = extension.getAsDouble();
+                if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
+                    pivotMotor1.set(0.0);
+                else 
+                    pivotMotor1.set(mapEncoderOutput(pivotEncoder.getPosition()) + 0.25 * rot);
+        
+                // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
+                //     extensionMotor.set(-1.0);
+                if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
+                    extensionMotor.set(0.0);
+                else
+                    extensionMotor.set(ext/2);
+            }
+        );
+    }
+
+    /**
+     * Moves the position of the {@link Arm} subsystem to the desired preset position.
+     * @param preset A {@link Point} object representing a point in cartesian coordinate space to move to.
+     */
+    public CommandBase setTargetPoint(ArmPresets preset) {
+        return run(
+            () -> {
+                double angle = pivotEncoder.getPosition(); // convert to radians
+                
+                extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
+                    (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(angle))
+                );
             }
         );
     }
@@ -132,41 +148,17 @@ public class Arm extends SubsystemBase {
         }
     }
 
-    /**
-     * Manually set the speeds for the extension and pivot of the {@link Arm} subsystem
-     * @param ext the speed to extend at
-     * @param rot the speed to pivot at
-     */
-    void setArmSpeeds(double ext, double rot) {
-        if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
-            pivotMotor1.set(0.0);
-        else 
-            pivotMotor1.set(rot);
-
-        // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
-        //     extensionMotor.set(-1.0);
-        if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
-            extensionMotor.set(0.0);
-        else
-            extensionMotor.set(ext);
-    }
-
-    /**
-     * Sets the target position for the end effector to travel towards.
-     * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
-     */
-    void setTargetPoint() {
-        double angle = pivotEncoder.getPosition(); // convert to radians
-        
-        extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
-            (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(angle))
-        );
+    double mapEncoderOutput(double encoderPos) {
+        double deg1 = 0.03 * encoderPos;
+        double deg2 = 0.00439 * Math.pow(encoderPos, 2);
+        double deg3 = 0.000116 * Math.pow(encoderPos, 3);
+        double deg4 = 0.00000406 * Math.pow(encoderPos, 4);
+        return 0.0124 + deg1 + deg2 + deg3 - deg4;
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Pivot", pivotEncoder.getPosition());
-        
         SmartDashboard.putNumber("Pivot Output", pivotMotor1.getAppliedOutput());
     }
 }
