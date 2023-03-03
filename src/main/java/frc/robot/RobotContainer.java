@@ -40,6 +40,8 @@ public class RobotContainer {
     arm.setDefaultCommand(
       arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY)
     );
+
+    led.setDefaultCommand(led.testBreathColor());
   }
 
   private void configureBindings() {
@@ -56,10 +58,10 @@ public class RobotContainer {
 
     /* Operator Controller */
     new JoystickButton(operatorController, Button.kA.value)
-    .toggleOnTrue(led.testBlinkColor());
+    .toggleOnTrue(led.cubeBlink());
 
     new JoystickButton(operatorController, Button.kB.value)
-    .onTrue(led.testBreathColor());
+    .onTrue(led.coneBlink());
 
     new JoystickButton(operatorController, Button.kX.value)
     .onTrue(led.testLerpColor());

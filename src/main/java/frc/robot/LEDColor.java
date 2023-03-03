@@ -73,8 +73,8 @@ public class LEDColor extends Color {
      * @param t Time, in seconds
      * @return The calculated color at t seconds
      */
-    public static Color lerpRGB(Color a, Color b, double t) {
-        return new Color(
+    public static LEDColor lerpRGB(Color a, Color b, double t) {
+        return new LEDColor(
             a.red + (b.red - a.red) * t,
             a.green + (b.green - a.green) * t,
             a.blue + (b.blue - a.blue) * t
@@ -121,21 +121,28 @@ public class LEDColor extends Color {
      * Calculates HSV from RGB
      */
     void calcHSV() {
-        double cMax = Math.max(red, Math.max(green, blue));
-        double cMin = Math.min(red, Math.min(green, blue));
+        double rprime=red/255;
+        double gprime=green/255;
+        double bprime=blue/255;
 
-        value = cMax/255;
-        saturation = cMax > 0 ? 1 - cMin/cMax : 0;
+        double cMax = Math.max(rprime, Math.max(gprime, bprime));
+        double cMin = Math.min(rprime, Math.min(gprime, bprime));
 
-        double a = red - (0.5 * green) - (0.5 * blue);
-        double h = (red*red) + (green*green) + (blue*blue) - (red*green) - (red*blue) - (green*blue);
-        double angle = Math.acos(a/h);
-        if (green >= blue) {
-            hue = Math.toDegrees(angle);
-        }
-        else if (blue > green) {
-            hue = 360 - Math.toDegrees(angle);
-        }
+        double delta = cMax - cMin;
+
+        value = cMax * 255;
+
+        saturation = cMax == 0 ? 0 : (delta/cMax) * 255;
+
+        if (delta == 0) 
+            hue = 0;
+        else if (cMax == rprime)
+            hue = 60 * (((gprime - bprime)/delta) % 6);
+        else if (cMax == gprime)
+            hue = 60 * (((bprime - rprime)/delta) + 2);
+        else if (cMax == bprime)
+            hue = 60 * (((rprime - gprime)/delta) + 4);
+        hue /= 2;
     }
 
     /**
