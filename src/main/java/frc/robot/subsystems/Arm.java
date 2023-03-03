@@ -12,11 +12,9 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.SparkMaxPIDController;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -48,17 +46,10 @@ public class Arm extends SubsystemBase {
     SparkMaxPIDController pivotController = pivotMotor1.getPIDController();
     SparkMaxPIDController extensionController = extensionMotor.getPIDController();
 
-    ArmFeedforward pivotFeedforward;
-        // TODO: multiply kG by cosine of the arm's angle relative to being vertical
+    // TODO: multiply kG by cosine of the arm's angle relative to being vertical
     ElevatorFeedforward extenstionFeedforward; 
 
-    HashMap<String, Double> pivotMap;
     HashMap<String, Double> extensionMap;
-
-    TrapezoidProfile.Constraints pivotConstraints = new TrapezoidProfile.Constraints(0, 0);
-    TrapezoidProfile.State pivotGoal = new TrapezoidProfile.State();
-    TrapezoidProfile.State pivotCurrPoint = new TrapezoidProfile.State();
-    TrapezoidProfile pivotProfile;
 
     TrapezoidProfile.Constraints extensionConstraints = new TrapezoidProfile.Constraints(0, 0);
     TrapezoidProfile.State extensionGoal = new TrapezoidProfile.State();
@@ -75,16 +66,10 @@ public class Arm extends SubsystemBase {
 
         extensionMotor.setIdleMode(IdleMode.kBrake);
 
+        pivotEncoder.setPosition(0);
+
         // pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
         // extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
-
-        pivotMap = RobotProperties.loadPIDConstants("PivotPID", pivotController);
-        pivotFeedforward = new ArmFeedforward(
-            pivotMap.get("kS"),
-            pivotMap.get("kG"),
-            pivotMap.get("kV"),
-            pivotMap.get("kA")
-        );
 
         extensionMap = RobotProperties.loadPIDConstants("ExtensionPID", extensionController);
         extenstionFeedforward = new ElevatorFeedforward(
@@ -102,7 +87,7 @@ public class Arm extends SubsystemBase {
     public CommandBase setTargetPoint(ArmPresets preset) {
         return run(
             () -> {
-                setTargetPoint(preset.value);
+                setTargetPoint();
             }
         );
     }
@@ -170,87 +155,18 @@ public class Arm extends SubsystemBase {
      * Sets the target position for the end effector to travel towards.
      * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
      */
-    void setTargetPoint(Point point) {
-        double angle = Math.atan(point.y/point.x);
-        double distance = Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
+    void setTargetPoint() {
+        double angle = pivotEncoder.getPosition(); // convert to radians
         
-        // the length of the arm and end effector before any transformations
-        double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
-
-        if (distance - baseLength >= ArmConstants.kArmMaxExtensionLength || distance - baseLength < 0) {
-            DriverStation.reportError("Not a valid distance; outside safe range.", null);
-            return;
-        }
-        if (angle >= ArmConstants.kMaxPivotAngle || angle <= ArmConstants.kMinPivotAngle) {
-            DriverStation.reportError("Not a valid pivot angle; outside safe range.", null);
-            return;
-        }
-        if (point.y >= ArmConstants.kMaxHeight) {
-            DriverStation.reportError("Cannot extend; Y coordinate is above max height.", null);
-            return;
-        }
-
-        pivotGoal.position = angle;
-        extensionGoal.position = distance - baseLength;
-        
-        pivotProfile = new TrapezoidProfile(pivotConstraints, pivotGoal, pivotCurrPoint);
-        extensionProfile = new TrapezoidProfile(extensionConstraints, extensionGoal, extensionCurrPoint);
-
-        pivotCurrPoint = pivotProfile.calculate(0.02);
-        extensionCurrPoint = extensionProfile.calculate(0.02);
-
-        pivotController.setReference(pivotCurrPoint.position, ControlType.kPosition, 0, 
-            pivotFeedforward.calculate(pivotEncoder.getPosition()+ArmConstants.kPivotAngleOffset, 0)
-        );
-
         extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
-            (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(pivotCurrPoint.position))
+            (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(angle))
         );
-    }
-
-    /**
-     * Gets the current position of the end effector in cartesian coordinate space.
-     * @return A {@link Point} object representing the current position in cartesian coordinate space.
-     */
-    public Point getCurrentPoint() {
-        Point point = new Point();
-
-        // the length of the arm and end effector before any transformations
-        double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
-        
-        // the length of the arm and end effector after transformations
-        double extensionLength = baseLength + extensionEncoder.getPosition();
-        
-        point.x = extensionLength * Math.cos(pivotEncoder.getPosition());
-        point.y = extensionLength * Math.sin(pivotEncoder.getPosition());
-        return point;
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Pivot", pivotEncoder.getPosition());
-        SmartDashboard.putNumber("Extension", extensionEncoder.getPosition());
         
-        SmartDashboard.putNumber("Bus Voltage", pivotMotor1.getAppliedOutput());
-
-        updateShuffleboard(pivotMap, pivotController);
-        updateShuffleboard(extensionMap, extensionController);
-    }
-
-    void updateShuffleboard(HashMap<String, Double> map, SparkMaxPIDController controller) {
-        double p = SmartDashboard.getNumber("kP", map.get("kP"));
-        double i = SmartDashboard.getNumber("kI", map.get("kI"));
-        double d = SmartDashboard.getNumber("kD", map.get("kD"));
-        double iz = SmartDashboard.getNumber("Izone", map.get("kIz"));
-
-        if (p != map.get("kP")) controller.setP(p);
-        if (i != map.get("kI")) controller.setI(i);
-        if (d != map.get("kD")) controller.setD(d);
-        if (iz != map.get("kIz")) controller.setIZone(iz);
-        
-        SmartDashboard.putNumber("kS", map.get("kS"));
-        SmartDashboard.putNumber("kG", map.get("kG"));
-        SmartDashboard.putNumber("kV", map.get("kV"));
-        SmartDashboard.putNumber("kA", map.get("kA"));
+        SmartDashboard.putNumber("Pivot Output", pivotMotor1.getAppliedOutput());
     }
 }
