@@ -1,24 +1,14 @@
 package frc.robot.subsystems;
 
-import java.util.HashMap;
 import java.util.function.DoubleSupplier;
-
 import org.opencv.core.Point;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkMax.ControlType;
-import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.SparkMaxPIDController;
-
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotProperties;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.ArmPresets;
 
@@ -28,7 +18,7 @@ import frc.robot.constants.ArmPresets;
  * Uses 3 NEO motors, 1 absolute encoder and 1 quadrature encoder.
  */
 public class Arm extends SubsystemBase {
-    public boolean isConeMode;
+    public boolean isConeMode = false;
 
     CANSparkMax pivotMotor1 = new CANSparkMax(ArmConstants.kPivotPort1, MotorType.kBrushless);
     CANSparkMax pivotMotor2 = new CANSparkMax(ArmConstants.kPivotPort2, MotorType.kBrushless);
@@ -43,41 +33,11 @@ public class Arm extends SubsystemBase {
     DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kEncoderSwitchMinChannel);
     DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kEncoderSwitchMaxChannel);
 
-    SparkMaxPIDController pivotController = pivotMotor1.getPIDController();
-    SparkMaxPIDController extensionController = extensionMotor.getPIDController();
-
-    // TODO: multiply kG by cosine of the arm's angle relative to being vertical
-    ElevatorFeedforward extenstionFeedforward; 
-
-    HashMap<String, Double> extensionMap;
-
-    TrapezoidProfile.Constraints extensionConstraints = new TrapezoidProfile.Constraints(0, 0);
-    TrapezoidProfile.State extensionGoal = new TrapezoidProfile.State();
-    TrapezoidProfile.State extensionCurrPoint = new TrapezoidProfile.State();
-    TrapezoidProfile extensionProfile;
-    
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
      */
     public Arm() {
-        pivotMotor1.setIdleMode(IdleMode.kBrake);
-        pivotMotor2.setIdleMode(IdleMode.kBrake);
         pivotMotor2.follow(pivotMotor1);
-
-        extensionMotor.setIdleMode(IdleMode.kBrake);
-
-        pivotEncoder.setPosition(0);
-
-        // pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
-        // extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
-
-        extensionMap = RobotProperties.loadPIDConstants("ExtensionPID", extensionController);
-        extenstionFeedforward = new ElevatorFeedforward(
-            extensionMap.get("kS"),
-            extensionMap.get("kG"),
-            extensionMap.get("kV"),
-            extensionMap.get("kA")
-        );
     }
     
     
@@ -95,10 +55,12 @@ public class Arm extends SubsystemBase {
                 if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
                     pivotMotor1.set(0.0);
                 else 
-                    pivotMotor1.set(mapEncoderOutput(pivotEncoder.getPosition()) + 0.25 * rot);
+                    pivotMotor1.set(
+                        lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + 0.25 * rot
+                    );
         
                 // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
-                //     extensionMotor.set(-1.0);
+                //     extensionMotor.set(-1.0); 
                 if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
                     extensionMotor.set(0.0);
                 else
@@ -114,13 +76,36 @@ public class Arm extends SubsystemBase {
     public CommandBase setTargetPoint(ArmPresets preset) {
         return run(
             () -> {
-                double angle = pivotEncoder.getPosition(); // convert to radians
-                
-                extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
-                    (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(angle))
+                double pivotError = preset.value.x - pivotEncoder.getPosition();
+                double pivotProportional = ArmConstants.kPPivot * pivotError;
+                pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxSpeed);
+                pivotMotor1.set(
+                    lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
                 );
+                    
+                double extError = preset.value.y - extensionEncoder.getPosition();
+                double extensionProportional = ArmConstants.kPExtension * extError;
+                pivotProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxSpeed);
+                extensionMotor.set(extensionProportional);
             }
         );
+    }
+
+    /**
+     * Clamps the desired error between a max/min speed
+     * @param error Desired error
+     * @param limit Speed limit
+     * @return The clamped error
+     */
+    double checkSpeedLimit(double error, double limit) {
+        double outError=error;
+        if(outError > limit) {
+            outError = limit;
+        }
+        if (outError < -limit) {
+            outError = -limit;
+        }
+        return outError;
     }
 
     /**
@@ -148,17 +133,56 @@ public class Arm extends SubsystemBase {
         }
     }
 
-    double mapEncoderOutput(double encoderPos) {
-        double deg1 = 0.03 * encoderPos;
-        double deg2 = 0.00439 * Math.pow(encoderPos, 2);
-        double deg3 = 0.000116 * Math.pow(encoderPos, 3);
-        double deg4 = 0.00000406 * Math.pow(encoderPos, 4);
-        return 0.0124 + deg1 + deg2 + deg3 - deg4;
+    /**
+     * Creates a feed forward value at the minimum extension
+     * @param encoderPos Encoder position
+     * @return Feed forward
+     */
+    double mapEncoderOutputIn(double encoderPos) {
+        double deg1 = 0.00679 * encoderPos;
+        double deg2 = -0.00549 * Math.pow(encoderPos, 2);
+        double deg3 = -0.00103 * Math.pow(encoderPos, 3);
+        double deg4 = -0.000043 * Math.pow(encoderPos, 4);
+        return 0.000134 + deg1 + deg2 + deg3 + deg4;
+    }
+
+    /**
+     * Creates a feed forward value at the maximum extension
+     * @param encoderPos Encoder position
+     * @return Feed forward
+     */
+    double mapEncoderOutputOut(double encoderPos) {
+        // 4th degree polynomial to calculate the feed forward.
+        // Essentially equal to the 'kS' value in a WPILib feed forward.
+        double deg1 = 0.0115 * encoderPos;
+        double deg2 = -0.0117 * Math.pow(encoderPos, 2);
+        double deg3 = -0.00176 * Math.pow(encoderPos, 3);
+        double deg4 = -0.0000565 * Math.pow(encoderPos, 4);
+        return -0.00224 + deg1 + deg2 + deg3 + deg4;
+    }
+
+    /**
+     * Interpolates between the minimum and maximum extension feed forwards to produce a feed forward at desired extension
+     * @param pivotPos Pivot encoder position
+     * @param extensionPos Extension encoder position
+     * @return Interpolated feed forward
+     */
+    double lerpRequiredOutput(double pivotPos, double extensionPos) {
+        if(pivotPos > 0){
+            // Minimum allowed pivot position
+            return 0.01;
+        }
+        double a = mapEncoderOutputIn(pivotPos) * (0.0260078 * extensionPos + 1.0130039);
+        double b = mapEncoderOutputOut(pivotPos) * (-0.0260078 * extensionPos - 0.0130039);
+
+        return a + b;
     }
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Pivot", pivotEncoder.getPosition());
+        SmartDashboard.putNumber("Pivot Encoder", pivotEncoder.getPosition());
         SmartDashboard.putNumber("Pivot Output", pivotMotor1.getAppliedOutput());
+        SmartDashboard.putNumber("Extension Encoder", extensionEncoder.getPosition());
+        SmartDashboard.putNumber("Extension Output", extensionMotor.getAppliedOutput());
     }
 }
