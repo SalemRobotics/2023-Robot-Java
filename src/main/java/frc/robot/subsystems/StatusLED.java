@@ -2,7 +2,9 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,20 +32,48 @@ public class StatusLED extends SubsystemBase {
     }
 
 
-    public CommandBase cubeBlink() {
-        return blinkStripColor(new LEDColor(100, 0, 200), new LEDColor(0, 0, 0), 0.5);
+    public CommandBase cubeModeColor() {
+        // return blinkStripColor(new LEDColor(100, 0, 200), new LEDColor(0, 0, 0), 0.5);
+        return run(
+            () -> {
+                setStripColorHSV(new LEDColor(100, 0, 200));
+            }
+        );
     }
 
-    public Command coneBlink() {
-        return blinkStripColor(new LEDColor(255, 255, 0), new LEDColor(0, 0, 0), 0.5);
+    public CommandBase coneModeColor() {
+        // return blinkStripColor(new LEDColor(255, 255, 0), new LEDColor(0, 0, 0), 0.5);
+        return run(
+            () -> {
+                setStripColorHSV(new LEDColor(255, 255, 0));
+            }
+        );
     }
 
     public Command testLerpColor() {
         return interpolateStripColor(new LEDColor(255, 0, 0), new LEDColor(0, 0, 255));
     }
 
-    public Command testBreathColor() {
-        return slowBlinkStripColor(new LEDColor(0, 0, 255), 1);
+    public Command breathTeamColor() {
+        Alliance all = DriverStation.getAlliance();
+        if (all == Alliance.Red) {
+            return slowBlinkStripColor(new LEDColor(255, 0, 0), 1).ignoringDisable(true);
+        }
+        return slowBlinkStripColor(new LEDColor(0, 0, 255), 1).ignoringDisable(true);
+    }
+
+    public CommandBase solidTeamColor() {
+        return run(
+            () -> {
+                Alliance all = DriverStation.getAlliance();
+                if (all == Alliance.Red) {
+                    setStripColorHSV(new LEDColor(255, 0, 0));
+                }
+                else {
+                    setStripColorHSV(new LEDColor(0, 0, 255));
+                }
+            }
+        );
     }
 
     /**
