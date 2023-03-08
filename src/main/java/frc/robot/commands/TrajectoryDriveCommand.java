@@ -25,7 +25,7 @@ import frc.robot.subsystems.Drivetrain;
  */
 public class TrajectoryDriveCommand extends CommandBase{  
     
-    final DifferentialDriveKinematics driveKinematics = 
+    public static final DifferentialDriveKinematics driveKinematics = 
     new DifferentialDriveKinematics(DrivetrainConstants.trackWidthMeters);
 
     /**
@@ -90,6 +90,6 @@ public class TrajectoryDriveCommand extends CommandBase{
         drive.resetOdometry(exampleTrajectory.getInitialPose());
 
         // Run path following command, then stop at the end.
-        return ramseteCommand.andThen(() -> drive.tankDriveVolts(0, 0));
+        return ramseteCommand.andThen(() -> drive.tankDriveVolts(0.0, 0.0));
     }
 }
