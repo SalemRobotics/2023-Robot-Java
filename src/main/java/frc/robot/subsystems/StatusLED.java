@@ -45,7 +45,7 @@ public class StatusLED extends SubsystemBase {
         return blinkStripColor(new LEDColor(0, 255, 0), new LEDColor(0, 0, 0), 0.2);
     }
 
-    public CommandBase coneModeColor() {
+    public CommandBase coneSolidColor() {
         // return blinkStripColor(new LEDColor(255, 255, 0), new LEDColor(0, 0, 0), 0.5);
         return run(
             () -> {

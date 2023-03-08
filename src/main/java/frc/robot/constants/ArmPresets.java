@@ -15,7 +15,7 @@ public enum ArmPresets {
 
     CONE_LOW_GOAL(0, -0.5),
     CONE_MID_GOAL(-7, -9.67),
-    CONE_HIGH_GOAL(-7.05, -38.9);
+    CONE_HIGH_GOAL(-7.05, -36);
 
     public final Point value;
 

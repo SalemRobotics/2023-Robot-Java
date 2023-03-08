@@ -4,19 +4,14 @@ public class ArmConstants {
     public static final int kExtensionPort = 4;
     public static final int kPivotPort1 = 5;
     public static final int kPivotPort2 = 6;
-        
-    public static final int kPivotEncoderSourceA = 1;
-    public static final int kPivotEncoderSourceB = 2;
-    public static final int kExtensionEncoderSourceA = 3;
-    public static final int kExtensionEncoderSourceB = 4;
 
-    public static final double kPivotEncoderDistance = 0; // TODO: 360 degrees / pulses per rotation
-    public static final double kExtensionEncoderDistance = 0; // TODO: distancePerPulse = pulley circum / pulses per rotation
+    public static final double kPivotAngleFactor = 0; // TODO: 360 degrees / pulses per rotation
+    public static final double kExtensionDistanceFactor = 0; // TODO: distancePerPulse = pulley circum / pulses per rotation
     
     public static final int kPivotSwitchMinChannel = 5;
     public static final int kPivotSwitchMaxChannel = 6;
-    public static final int kEncoderSwitchMinChannel = 7;
-    public static final int kEncoderSwitchMaxChannel = 8;
+    public static final int kExtensionSwitchMinChannel = 7;
+    public static final int kExtensionSwitchMaxChannel = 8;
 
     public static final double kPPivot = 0.15;
     public static final double kPivotMaxSpeed = 0.18;

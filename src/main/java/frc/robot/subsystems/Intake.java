@@ -16,7 +16,7 @@ import frc.robot.constants.IntakeConstants;
 public class Intake extends SubsystemBase {
 
     CANSparkMax motor = new CANSparkMax(IntakeConstants.kMotorPort, MotorType.kBrushless);
-    public Trigger t = new Trigger(() -> { return motor.getOutputCurrent() > 25; });
+    public Trigger hitCurrentLimit = new Trigger(() -> { return motor.getOutputCurrent() > IntakeConstants.kCurrentLimit; });
 
     /**
      * Sets the speed of the intake motor. This command will stop 
@@ -30,12 +30,10 @@ public class Intake extends SubsystemBase {
             () -> { motor.set(speed); },
             
             // end
-            isFinished->{ motor.set(0); },
+            isFinished -> { motor.set(0); },
 
             // isFinished?
-            () -> { 
-                return false; 
-            },
+            () -> false,
 
             // subsystem requirement
             this

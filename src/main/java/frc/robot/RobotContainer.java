@@ -5,10 +5,12 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.IntakePresetCommand;
 import frc.robot.constants.ArmPresets;
@@ -59,7 +61,7 @@ public class RobotContainer {
     new JoystickButton(driverController, Button.kLeftBumper.value)
     .toggleOnTrue(
       new InstantCommand(() -> { arm.isConeMode = true; })
-      .alongWith(led.coneModeColor())
+      .alongWith(led.coneSolidColor())
     );
 
     /* Operator Controller */
@@ -85,8 +87,14 @@ public class RobotContainer {
     .whileTrue(new IntakePresetCommand(arm, intake, led, IntakeConstants.kIntakeInSpeed))
     .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
     
-      // Blink green when gamepiece is aquired.
-    intake.t.whileTrue(led.gamepieceBlinkColor());
+      // Blink green when gamepiece is aquired, to notify the operator to stop. Also rumbles controller.
+    intake.hitCurrentLimit.whileTrue(
+      led.gamepieceBlinkColor()
+      .alongWith(new RunCommand(() -> { 
+        driverController.setRumble(RumbleType.kBothRumble, 1); 
+        operatorController.setRumble(RumbleType.kBothRumble, 1);
+      }))
+    );
     
       // Release game piece
     new JoystickButton(operatorController, Button.kLeftBumper.value)
