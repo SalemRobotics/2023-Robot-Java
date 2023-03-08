@@ -11,7 +11,7 @@ public enum ArmPresets {
 
     CUBE_LOW_GOAL(0, -0.5),
     CUBE_MID_GOAL(-7, -9.67),
-    CUBE_HIGH_GOAL(-7.05, -38.9),
+    CUBE_HIGH_GOAL(-7.05, -36),
 
     CONE_LOW_GOAL(0, -0.5),
     CONE_MID_GOAL(-7, -9.67),

@@ -121,9 +121,9 @@ public class LEDColor extends Color {
      * Calculates HSV from RGB
      */
     void calcHSV() {
-        double rprime=red/255;
-        double gprime=green/255;
-        double bprime=blue/255;
+        double rprime = red / 255;
+        double gprime = green / 255;
+        double bprime = blue / 255;
 
         double cMax = Math.max(rprime, Math.max(gprime, bprime));
         double cMin = Math.min(rprime, Math.min(gprime, bprime));
@@ -137,48 +137,47 @@ public class LEDColor extends Color {
         if (delta == 0) 
             hue = 0;
         else if (cMax == rprime)
-            hue = 60 * (((gprime - bprime)/delta) % 6);
+            hue = 30 * (((gprime - bprime)/delta) % 6);
         else if (cMax == gprime)
-            hue = 60 * (((bprime - rprime)/delta) + 2);
+            hue = 30 * (((bprime - rprime)/delta) + 2);
         else if (cMax == bprime)
-            hue = 60 * (((rprime - gprime)/delta) + 4);
-        hue /= 2;
+            hue = 30 * (((rprime - gprime)/delta) + 4);
     }
 
     /**
      * Calculates RGB from HSV
      */
     void calcRGB() {
-        double cMax = 255 * value;
-        double cMin = cMax * (1 - saturation);
-        double z = (cMax - cMin) * (1 - Math.abs((hue/60)%2 - 1));
+        double cMax = value;
+        double cMin = cMax * (1 - (saturation / 255));
+        double z = (cMax - cMin) * (1 - Math.abs((hue / 30) % 2 - 1));
 
-        if (hue < 60) {
+        if (hue < 30) {
             red = cMax;
             green = z + cMin;
             blue = cMin;
         }
-        else if (60 <= hue && hue < 120) {
+        else if (30 <= hue && hue < 60) {
             red = z + cMin;
             green = cMax;
             blue = cMin;
         }
-        else if (120 <= hue && hue < 180) {
+        else if (60 <= hue && hue < 90) {
             red = cMin;
             green = cMax;
             blue = z + cMin;
         }
-        else if (180 <= hue && hue < 240) {
+        else if (90 <= hue && hue < 120) {
             red = cMin;
             green = z + cMin;
             blue = cMax;
         }
-        else if (240 <= hue && hue < 300) {
+        else if (120 <= hue && hue < 150) {
             red = z + cMin;
             green = cMin;
             blue = cMax;
         }
-        else if (300 <= hue && hue < 360) {
+        else if (150 <= hue && hue < 180) {
             red = cMax;
             green = cMin;
             blue = z + cMin;

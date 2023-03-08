@@ -5,6 +5,10 @@ import org.opencv.core.Point;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -33,11 +37,18 @@ public class Arm extends SubsystemBase {
     DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kEncoderSwitchMinChannel);
     DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kEncoderSwitchMaxChannel);
 
+    Constraints extensionConstraints = new Constraints(0, 0);
+    State extensionGoal = new State();
+    State extensionCurrent = new State();
+    TrapezoidProfile extensionProfile;
+
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
      */
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
+        extensionMotor.setSmartCurrentLimit(40);
+        extensionMotor.burnFlash();
     }
     
     
@@ -182,7 +193,9 @@ public class Arm extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Pivot Encoder", pivotEncoder.getPosition());
         SmartDashboard.putNumber("Pivot Output", pivotMotor1.getAppliedOutput());
+        
         SmartDashboard.putNumber("Extension Encoder", extensionEncoder.getPosition());
         SmartDashboard.putNumber("Extension Output", extensionMotor.getAppliedOutput());
+        SmartDashboard.putNumber("Extension Current", extensionMotor.getOutputCurrent());
     }
 }

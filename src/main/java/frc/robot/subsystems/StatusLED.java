@@ -32,13 +32,17 @@ public class StatusLED extends SubsystemBase {
     }
 
 
-    public CommandBase cubeModeColor() {
+    public CommandBase cubeSolidColor() {
         // return blinkStripColor(new LEDColor(100, 0, 200), new LEDColor(0, 0, 0), 0.5);
         return run(
             () -> {
                 setStripColorHSV(new LEDColor(100, 0, 200));
             }
         );
+    }
+
+    public Command gamepieceBlinkColor() {
+        return blinkStripColor(new LEDColor(0, 255, 0), new LEDColor(0, 0, 0), 0.2);
     }
 
     public CommandBase coneModeColor() {

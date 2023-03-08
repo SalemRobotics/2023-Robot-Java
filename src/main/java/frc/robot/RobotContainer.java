@@ -52,7 +52,7 @@ public class RobotContainer {
     new JoystickButton(driverController, Button.kRightBumper.value)
     .toggleOnTrue(
       new InstantCommand(() -> { arm.isConeMode = false; })
-      .alongWith(led.cubeModeColor())
+      .alongWith(led.cubeSolidColor())
     );
 
       // Set Cone mode and blink yellow
@@ -82,8 +82,11 @@ public class RobotContainer {
 
       // Intake: will move to intake position and run intake
     new JoystickButton(operatorController, Button.kRightBumper.value)
-    .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeInSpeed))
+    .whileTrue(new IntakePresetCommand(arm, intake, led, IntakeConstants.kIntakeInSpeed))
     .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
+    
+      // Blink green when gamepiece is aquired.
+    intake.t.whileTrue(led.gamepieceBlinkColor());
     
       // Release game piece
     new JoystickButton(operatorController, Button.kLeftBumper.value)
