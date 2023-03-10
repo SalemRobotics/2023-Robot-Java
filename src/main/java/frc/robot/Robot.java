@@ -5,7 +5,6 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -14,14 +13,6 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
-  private static final String kBottomPathNoEngage = "Bottom Path No Engage";
-  private static final String kBottomPathOneScore = "Bottom Path One Score";
-  private static final String kBottomPath = "Bottom Path";
-  private static final String kTopPathNoEngage = "Top Path No Engage";
-  private static final String kTopPathOneScore = "Top Path One Score";
-  private static final String kTopPath = "Top Path";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
   @Override
   public void robotInit() {

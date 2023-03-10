@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -48,8 +49,6 @@ public class Drivetrain extends SubsystemBase {
     DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
         getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
 
-    double kP=0, kI=0;
-
     public Drivetrain() {
         leftTopMotor.follow(leftFrontMotor);
         leftBackMotor.follow(leftFrontMotor);
@@ -66,7 +65,6 @@ public class Drivetrain extends SubsystemBase {
     public void periodic() {
         odometry.update(getRotation2d(), leftEncoder.getPosition(), rightEncoder.getPosition());
         updateGyroShuffleboard();
-        updatePID();
     }
 
     /**
@@ -79,43 +77,53 @@ public class Drivetrain extends SubsystemBase {
         SmartDashboard.putNumber("Pitch", gyro.getRoll()); 
         SmartDashboard.putNumber("Roll", gyro.getPitch());
     }
-
-    /**
-     * Sends PID constants to Shuffleboard as editable fields. 
-     */
-    void updatePID() {
-        kP = SmartDashboard.getNumber("P", kP);
-        kI = SmartDashboard.getNumber("I", kI);
-    }
     
     /**
      * A command to drive the robot in whichever direction it needs to 
      * in order to maintain a pitch of 0. This Is used to make sure the robot stays docked on the charger. 
      * @return Runnable command.
      */
-    public CommandBase alignToCharger() {
-        return run(
-            () -> {
-                new PIDCommand(
-                    new PIDController(kP, kI, 0), 
-                    gyro::getRoll, 
-                    0, 
-                    output -> {
-                        leftFrontMotor.set(output);
-                        rightFrontMotor.set(output);
-                    }, 
-                    this
-                );
-            }
+    public Command alignToCharger() {
+        return new PIDCommand(
+            new PIDController(
+                DrivetrainConstants.kPCharger, DrivetrainConstants.kICharger, 0
+            ), 
+            gyro::getRoll, 
+            0, 
+            output -> {
+                leftFrontMotor.set(output);
+                rightFrontMotor.set(output);
+            }, 
+            this
         );
     }
 
-    public CommandBase alignToApriltag() {
-        return run(
-            () -> {
-                double targetAngle = LimelightHelpers.getPythonScriptData("limelight")[1];
-                drive.arcadeDrive(0.0, -Math.max(-1, Math.min(1, targetAngle)), true); 
-            }
+    public Command alignToApriltag() {
+        double targetAngle = LimelightHelpers.getPythonScriptData("limelight")[1];
+        return new PIDCommand(
+            new PIDController(
+                DrivetrainConstants.kPTag, DrivetrainConstants.kITag, DrivetrainConstants.kDTag
+            ), 
+            gyro::getYaw, 
+            targetAngle, 
+            output -> {
+                drive.arcadeDrive(0, -output);
+            }, 
+            this
+        );
+    }
+
+    public Command turn180() {
+        return new PIDCommand(
+            new PIDController(
+                DrivetrainConstants.kPTurn, 0, DrivetrainConstants.kDTurn
+            ), 
+            gyro::getYaw, 
+            180, 
+            output -> {
+                drive.arcadeDrive(0, -output);
+            }, 
+            this
         );
     }
 

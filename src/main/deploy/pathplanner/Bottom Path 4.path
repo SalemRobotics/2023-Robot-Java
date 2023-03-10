@@ -1,0 +1,51 @@
+{
+  "waypoints": [
+    {
+      "anchorPoint": {
+        "x": 5.084308630155721,
+        "y": 0.8107609377611926
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 5.43830284241765,
+        "y": 0.9135334509985259
+      },
+      "holonomicAngle": 0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
+      "stopEvent": {
+        "names": [],
+        "executionBehavior": "parallel",
+        "waitBehavior": "none",
+        "waitTime": 0
+      }
+    },
+    {
+      "anchorPoint": {
+        "x": 6.557381319890846,
+        "y": 1.735713556897199
+      },
+      "prevControl": {
+        "x": 5.804313972939702,
+        "y": 1.1996317166946882
+      },
+      "nextControl": null,
+      "holonomicAngle": 0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
+      "stopEvent": {
+        "names": [
+          "This is a turn"
+        ],
+        "executionBehavior": "parallel",
+        "waitBehavior": "none",
+        "waitTime": 0
+      }
+    }
+  ],
+  "markers": []
+}

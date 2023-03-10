@@ -23,4 +23,14 @@ public class DrivetrainConstants {
     public static final int kRamseteB=0;
     public static final int kRamseteZeta=0;
     public static final int kPDriveVel=0;
+
+    public static final double kPTag=0;
+    public static final double kITag=0;
+    public static final double kDTag=0;
+
+    public static final double kPCharger=0;
+    public static final double kICharger=0;
+
+    public static final double kPTurn=0;
+    public static final double kDTurn=0;
 }
