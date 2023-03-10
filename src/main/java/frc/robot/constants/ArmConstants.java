@@ -26,4 +26,6 @@ public class ArmConstants {
     public static final double kPivotAngleOffset = 132.68; // degrees
     public static final double kMaxPivotAngle = 0.0; // degrees
     public static final double kMinPivotAngle = 0.0; // degrees
+    public static final double kMaxPivotVelocity = 0.0; // degrees/second
+    public static final double kMaxPivotAccel = 0.0; // degrees/second^2
 }

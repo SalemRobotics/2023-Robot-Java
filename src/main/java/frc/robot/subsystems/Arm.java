@@ -37,10 +37,9 @@ public class Arm extends SubsystemBase {
     DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
     DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
 
-    Constraints extensionConstraints = new Constraints(0, 0);
-    State extensionGoal = new State();
-    State extensionCurrent = new State();
-    TrapezoidProfile extensionProfile;
+    Constraints extensionConstraints = new Constraints(ArmConstants.kMaxPivotVelocity, ArmConstants.kMaxPivotAccel);
+    State pivotGoal;
+    State pivotCurrentState;
 
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
@@ -90,6 +89,8 @@ public class Arm extends SubsystemBase {
                 double pivotError = preset.value.x - pivotEncoder.getPosition();
                 double pivotProportional = ArmConstants.kPPivot * pivotError;
                 pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxSpeed);
+                var profile = new TrapezoidProfile(extensionConstraints, pivotGoal, pivotCurrentState);
+                pivotCurrentState = profile.calculate(0.02);
                 pivotMotor1.set(
                     lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
                 );
