@@ -37,7 +37,7 @@ public class Arm extends SubsystemBase {
     DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
     DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
 
-    Constraints extensionConstraints = new Constraints(ArmConstants.kMaxPivotVelocity, ArmConstants.kMaxPivotAccel);
+    Constraints pivotConstraints = new Constraints(ArmConstants.kMaxPivotVelocity, ArmConstants.kMaxPivotAccel);
     State pivotGoal;
     State pivotCurrentState;
 
@@ -89,15 +89,18 @@ public class Arm extends SubsystemBase {
                 double pivotError = preset.value.x - pivotEncoder.getPosition();
                 double pivotProportional = ArmConstants.kPPivot * pivotError;
                 pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxSpeed);
-                var profile = new TrapezoidProfile(extensionConstraints, pivotGoal, pivotCurrentState);
-                pivotCurrentState = profile.calculate(0.02);
+
+                pivotGoal = new State(pivotProportional, 0);
+                var profile = new TrapezoidProfile(pivotConstraints, pivotGoal, pivotCurrentState);
+                pivotCurrentState = profile.calculate(0.02);  
+
                 pivotMotor1.set(
-                    lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
+                    lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotCurrentState.position
                 );
-                    
+                     
                 double extError = preset.value.y - extensionEncoder.getPosition();
                 double extensionProportional = ArmConstants.kPExtension * extError;
-                pivotProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxSpeed);
+                extensionProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxSpeed);
                 extensionMotor.set(extensionProportional);
             }
         );
