@@ -5,10 +5,6 @@ import org.opencv.core.Point;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -36,10 +32,6 @@ public class Arm extends SubsystemBase {
     DigitalInput pivotSwitchMax = new DigitalInput(ArmConstants.kPivotSwitchMaxChannel);
     DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
     DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
-
-    Constraints pivotConstraints = new Constraints(ArmConstants.kMaxPivotVelocity, ArmConstants.kMaxPivotAccel);
-    State pivotGoal;
-    State pivotCurrentState;
 
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
@@ -89,13 +81,8 @@ public class Arm extends SubsystemBase {
                 double pivotError = preset.value.x - pivotEncoder.getPosition();
                 double pivotProportional = ArmConstants.kPPivot * pivotError;
                 pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxSpeed);
-
-                pivotGoal = new State(pivotProportional, 0);
-                var profile = new TrapezoidProfile(pivotConstraints, pivotGoal, pivotCurrentState);
-                pivotCurrentState = profile.calculate(0.02);  
-
                 pivotMotor1.set(
-                    lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotCurrentState.position
+                    lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
                 );
                      
                 double extError = preset.value.y - extensionEncoder.getPosition();
