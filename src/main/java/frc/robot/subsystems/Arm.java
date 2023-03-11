@@ -1,11 +1,17 @@
 package frc.robot.subsystems;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.DoubleSupplier;
 import org.opencv.core.Point;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -18,7 +24,7 @@ import frc.robot.constants.ArmPresets;
  * Uses 3 NEO motors, 1 absolute encoder and 1 quadrature encoder.
  */
 public class Arm extends SubsystemBase {
-    public boolean isConeMode = false;
+    public static boolean isConeMode = false;
 
     CANSparkMax pivotMotor1 = new CANSparkMax(ArmConstants.kPivotPort1, MotorType.kBrushless);
     CANSparkMax pivotMotor2 = new CANSparkMax(ArmConstants.kPivotPort2, MotorType.kBrushless);
@@ -33,13 +39,28 @@ public class Arm extends SubsystemBase {
     DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
     DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
 
+    Path newfilePath = Filesystem.getOperatingDirectory().toPath().resolve("tuning.txt");
+
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
      */
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
-        extensionMotor.setSmartCurrentLimit(40);
-        extensionMotor.burnFlash();
+        
+        try {
+            Files.createFile(newfilePath);
+            FileWriter fWriter = new FileWriter(newfilePath.toString(), true);
+            BufferedWriter bWriter = new BufferedWriter(fWriter);
+            bWriter.write("\n\n// New Enable Period //\n");
+            bWriter.write("Pivot:                 Extension:");
+            bWriter.newLine();
+            bWriter.close();
+            System.out.println("File Successfully Created.");
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("File Already Exists or is Corrupted.");
+        }
     }
     
     
@@ -178,6 +199,26 @@ public class Arm extends SubsystemBase {
         double b = mapEncoderOutputOut(pivotPos) * (-0.0260078 * extensionPos - 0.0130039);
 
         return a + b;
+    }
+
+    public CommandBase snapshotEncoderPosition() {
+        return runOnce(
+            () -> {
+                try {
+                    FileWriter fw = new FileWriter(newfilePath.toString(), true);
+                    BufferedWriter bWriter = new BufferedWriter(fw);
+                    bWriter.write(Double.toString(pivotEncoder.getPosition()) + "   ");
+                    bWriter.write(Double.toString(extensionEncoder.getPosition()));
+                    bWriter.newLine();
+                    bWriter.close();
+                    System.out.println("File wrote successfully.");
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("File does not exist or is corrupted.");
+                }
+            }
+        );
     }
 
     @Override
