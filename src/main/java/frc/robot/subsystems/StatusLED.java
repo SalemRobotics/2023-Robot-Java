@@ -31,33 +31,39 @@ public class StatusLED extends SubsystemBase {
         led.start();
     }
 
-
-    public CommandBase cubeSolidColor() {
-        // return blinkStripColor(new LEDColor(100, 0, 200), new LEDColor(0, 0, 0), 0.5);
+    /**
+     * Display color to indicate which gamepiece is going to be picked up.
+     * @return {@linkplain Command}
+     */
+    public CommandBase gamepieceSolidColor() {
         return run(
             () -> {
-                setStripColorHSV(new LEDColor(100, 0, 200));
+                if (Arm.isConeMode) {
+                    setStripColorHSV(new LEDColor(255, 255, 0));
+                }
+                else {
+                    setStripColorHSV(new LEDColor(100, 0, 200));
+                }
             }
         );
     }
 
-    public Command gamepieceBlinkColor() {
+    /**
+     * Blink green when the intake is at current limit.
+     * @return {@linkplain Command}
+     */
+    public Command overCurrentBlink() {
         return blinkStripColor(new LEDColor(0, 255, 0), new LEDColor(0, 0, 0), 0.2);
-    }
-
-    public CommandBase coneSolidColor() {
-        // return blinkStripColor(new LEDColor(255, 255, 0), new LEDColor(0, 0, 0), 0.5);
-        return run(
-            () -> {
-                setStripColorHSV(new LEDColor(255, 255, 0));
-            }
-        );
     }
 
     public Command testLerpColor() {
         return interpolateStripColor(new LEDColor(255, 0, 0), new LEDColor(0, 0, 255));
     }
 
+    /**
+     * Slow breathes alliance color when disabled.
+     * @return {@linkplain Command}
+     */
     public Command breathTeamColor() {
         Alliance all = DriverStation.getAlliance();
         if (all == Alliance.Red) {
@@ -66,6 +72,10 @@ public class StatusLED extends SubsystemBase {
         return slowBlinkStripColor(new LEDColor(0, 0, 255), 1).ignoringDisable(true);
     }
 
+    /**
+     * Displays alliance color when enabled.
+     * @return {@linkplain Command}
+     */
     public CommandBase solidTeamColor() {
         return run(
             () -> {
@@ -132,10 +142,16 @@ public class StatusLED extends SubsystemBase {
                 LEDColor lerpColor = a;
                 if (isOn) {
                     lerpColor = LEDColor.lerpRGB(a, b, timer.get());
-                    isOn = !lerpColor.equals(b);
+                    if (!lerpColor.equals(b)) {
+                        isOn = false;
+                        timer.restart();
+                    }
                 } else {
                     lerpColor = LEDColor.lerpRGB(b, a, timer.get());
-                    isOn = lerpColor.equals(a);
+                    if (lerpColor.equals(a)) {
+                        isOn = true;
+                        timer.restart();
+                    }
                 }
                 setStripColorHSV(lerpColor);
                 SmartDashboard.putBoolean("isOn", isOn);
