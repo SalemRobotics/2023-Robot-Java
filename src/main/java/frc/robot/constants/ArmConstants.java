@@ -5,8 +5,7 @@ public class ArmConstants {
     public static final int kPivotPort1 = 5;
     public static final int kPivotPort2 = 6;
 
-    public static final double kPivotAngleFactor = 0; // TODO: 360 degrees / pulses per rotation
-    public static final double kExtensionDistanceFactor = 0; // TODO: distancePerPulse = pulley circum / pulses per rotation
+    public static final double kExtensionDistanceFactor = 11.811 / (42 * 16); // 11.811 in / 42 PPR * 16:1
     
     public static final int kPivotSwitchMinChannel = 5;
     public static final int kPivotSwitchMaxChannel = 6;
