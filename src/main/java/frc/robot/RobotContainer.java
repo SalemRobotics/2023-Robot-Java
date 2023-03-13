@@ -92,7 +92,7 @@ public class RobotContainer {
 
       // Intake: will move to intake position and run intake
     new JoystickButton(operatorController, Button.kRightBumper.value)
-    .whileTrue(new IntakePresetCommand(arm, intake, led, IntakeConstants.kIntakeInSpeed))
+    .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeInSpeed))
     .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
 
       // Blink green when gamepiece is aquired, to notify the operator to stop. Also rumbles controller.

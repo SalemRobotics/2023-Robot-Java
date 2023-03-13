@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.constants.ArmPresets;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.StatusLED;
 
 /**
  * Moves the position of the {@link Arm} subsystem to intake position while running the 
@@ -18,7 +17,7 @@ public class IntakePresetCommand extends ParallelCommandGroup {
      * @param intakeSubsystem an {@link Intake} subsystem object.
      * @param speed the desired speed to run the intake at.
      */
-    public IntakePresetCommand(Arm armSubsystem, Intake intakeSubsystem, StatusLED led, double speed) {
+    public IntakePresetCommand(Arm armSubsystem, Intake intakeSubsystem, double speed) {
         addCommands(
             armSubsystem.setTargetPoint(ArmPresets.INTAKE),
             intakeSubsystem.intakeRun(speed)
