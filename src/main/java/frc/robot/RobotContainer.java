@@ -5,10 +5,12 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.IntakePresetCommand;
 import frc.robot.constants.ArmPresets;
@@ -16,66 +18,102 @@ import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.XBConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.StatusLED;
+import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-  final XboxController driverController = new XboxController(XBConstants.drivePort);
-  final XboxController operatorController = new XboxController(XBConstants.opPort);
+  final XboxController driverController = new XboxController(XBConstants.kDriverPort);
+  final XboxController operatorController = new XboxController(XBConstants.kOperatorPort);
   
+  final Drivetrain drivetrain = new Drivetrain();
   final Arm arm = new Arm();
   final Intake intake = new Intake();
+
+  final StatusLED led = new StatusLED();
 
   public RobotContainer() {
     configureBindings();
 
+    drivetrain.setDefaultCommand(
+      drivetrain.arcadeDrive(driverController::getRightX, driverController::getLeftY)
+    );
+
     // Uses joysticks to control the rotation and extension of the arm.
     // Left stick: Extension, Right stick: Rotation
+    // arm.setDefaultCommand(
+    //   arm.setTargetPoint(ArmPresets.DEFAULT)
+    // );
+
     arm.setDefaultCommand(
       arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY)
     );
+
+    led.setDefaultCommand(led.solidTeamColor());
   }
 
   private void configureBindings() {
-    /* Driver Controller */
-      // Set the arm to the intaking position and run the intake inwards
-    new JoystickButton(driverController, Button.kRightBumper.value)
-    .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeInSpeed))
-    .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
 
-      // Set the arm to the intaking position and run the intake outwards, to eject the game piece
+    /* Driver Controller */
+      // Set Cube mode and blink purple
+    new JoystickButton(driverController, Button.kRightBumper.value)
+    .toggleOnTrue(
+      new InstantCommand(() -> { Arm.isConeMode = false; })
+      .alongWith(led.gamepieceSolidColor())
+    );
+
+      // Set Cone mode and blink yellow
     new JoystickButton(driverController, Button.kLeftBumper.value)
-    .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeOutSpeed))
-    .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
+    .toggleOnTrue(
+      new InstantCommand(() -> { Arm.isConeMode = true; })
+      .alongWith(led.gamepieceSolidColor())
+    );
 
     /* Operator Controller */
-      // Bindings for transforming the arm towards a preset point; 
-      // X:Default, A:Low goal, B:Mid goal, Y:High goal
+      // Hold...
+      // A = low goal
+      // B = Mid goal
+      // Y = High goal
+      // X = Manual Control
+    // new JoystickButton(operatorController, Button.kA.value)
+    // .whileTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_LOW_GOAL : ArmPresets.CUBE_LOW_GOAL));
 
-      // Toggle whether the Arm is in Cone mode
-    new JoystickButton(operatorController, Button.kStart.value)
-    .toggleOnTrue(new InstantCommand( () -> { arm.isConeMode = !arm.isConeMode; } ));
+    // new JoystickButton(operatorController, Button.kB.value)
+    // .whileTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_MID_GOAL : ArmPresets.CUBE_MID_GOAL));
 
-    new JoystickButton(operatorController, Button.kX.value)
-    .onTrue(arm.setTargetPoint(ArmPresets.DEFAULT));
+    // new JoystickButton(operatorController, Button.kY.value)
+    // .whileTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_HIGH_GOAL : ArmPresets.CUBE_HIGH_GOAL));
 
+    // new JoystickButton(operatorController, Button.kX.value)
+    // .whileTrue(arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY));
+    
+      // Snapshot encoder positions
     new JoystickButton(operatorController, Button.kA.value)
-    .onTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_LOW_GOAL : ArmPresets.CUBE_LOW_GOAL));
+    .onTrue(arm.snapshotEncoderPosition());
 
-    new JoystickButton(operatorController, Button.kB.value)
-    .onTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_MID_GOAL : ArmPresets.CUBE_MID_GOAL));
-
-    new JoystickButton(operatorController, Button.kY.value)
-    .onTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_HIGH_GOAL : ArmPresets.CUBE_HIGH_GOAL));
-
-      // Used to release the game piece without moving the arm
+      // Intake: will move to intake position and run intake
     new JoystickButton(operatorController, Button.kRightBumper.value)
-    .whileTrue(intake.intakeRun(IntakeConstants.kIntakeOutSpeed));
+    .whileTrue(new IntakePresetCommand(arm, intake, led, IntakeConstants.kIntakeInSpeed))
+    .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
 
-      // Used to re-intake the game piece, if necessary
+      // Blink green when gamepiece is aquired, to notify the operator to stop. Also rumbles controller.
+    intake.hitCurrentLimit.whileTrue(
+      led.overCurrentBlink()
+      .alongWith(new RunCommand(() -> { 
+        driverController.setRumble(RumbleType.kBothRumble, 1); 
+        operatorController.setRumble(RumbleType.kBothRumble, 1);
+      }))
+    ).onFalse(led.gamepieceSolidColor());
+    
+      // Release game piece
     new JoystickButton(operatorController, Button.kLeftBumper.value)
-    .whileTrue(intake.intakeRun(IntakeConstants.kIntakeInSpeed));
+    .whileTrue(intake.intakeRun(IntakeConstants.kIntakeOutSpeed));
   }
     
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
+  }
+
+  public Command getDisabledCommand() {
+    return led.breathTeamColor();
   }
 }

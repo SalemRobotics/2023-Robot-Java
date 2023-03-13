@@ -73,8 +73,8 @@ public class LEDColor extends Color {
      * @param t Time, in seconds
      * @return The calculated color at t seconds
      */
-    public static Color lerpRGB(Color a, Color b, double t) {
-        return new Color(
+    public static LEDColor lerpRGB(Color a, Color b, double t) {
+        return new LEDColor(
             a.red + (b.red - a.red) * t,
             a.green + (b.green - a.green) * t,
             a.blue + (b.blue - a.blue) * t
@@ -121,57 +121,63 @@ public class LEDColor extends Color {
      * Calculates HSV from RGB
      */
     void calcHSV() {
-        double cMax = Math.max(red, Math.max(green, blue));
-        double cMin = Math.min(red, Math.min(green, blue));
+        double rprime = red / 255;
+        double gprime = green / 255;
+        double bprime = blue / 255;
 
-        value = cMax/255;
-        saturation = cMax > 0 ? 1 - cMin/cMax : 0;
+        double cMax = Math.max(rprime, Math.max(gprime, bprime));
+        double cMin = Math.min(rprime, Math.min(gprime, bprime));
 
-        double a = red - (0.5 * green) - (0.5 * blue);
-        double h = (red*red) + (green*green) + (blue*blue) - (red*green) - (red*blue) - (green*blue);
-        double angle = Math.acos(a/h);
-        if (green >= blue) {
-            hue = Math.toDegrees(angle);
-        }
-        else if (blue > green) {
-            hue = 360 - Math.toDegrees(angle);
-        }
+        double delta = cMax - cMin;
+
+        value = cMax * 255;
+
+        saturation = cMax == 0 ? 0 : (delta/cMax) * 255;
+
+        if (delta == 0) 
+            hue = 0;
+        else if (cMax == rprime)
+            hue = 30 * (((gprime - bprime)/delta) % 6);
+        else if (cMax == gprime)
+            hue = 30 * (((bprime - rprime)/delta) + 2);
+        else if (cMax == bprime)
+            hue = 30 * (((rprime - gprime)/delta) + 4);
     }
 
     /**
      * Calculates RGB from HSV
      */
     void calcRGB() {
-        double cMax = 255 * value;
-        double cMin = cMax * (1 - saturation);
-        double z = (cMax - cMin) * (1 - Math.abs((hue/60)%2 - 1));
+        double cMax = value;
+        double cMin = cMax * (1 - (saturation / 255));
+        double z = (cMax - cMin) * (1 - Math.abs((hue / 30) % 2 - 1));
 
-        if (hue < 60) {
+        if (hue < 30) {
             red = cMax;
             green = z + cMin;
             blue = cMin;
         }
-        else if (60 <= hue && hue < 120) {
+        else if (30 <= hue && hue < 60) {
             red = z + cMin;
             green = cMax;
             blue = cMin;
         }
-        else if (120 <= hue && hue < 180) {
+        else if (60 <= hue && hue < 90) {
             red = cMin;
             green = cMax;
             blue = z + cMin;
         }
-        else if (180 <= hue && hue < 240) {
+        else if (90 <= hue && hue < 120) {
             red = cMin;
             green = z + cMin;
             blue = cMax;
         }
-        else if (240 <= hue && hue < 300) {
+        else if (120 <= hue && hue < 150) {
             red = z + cMin;
             green = cMin;
             blue = cMax;
         }
-        else if (300 <= hue && hue < 360) {
+        else if (150 <= hue && hue < 180) {
             red = cMax;
             green = cMin;
             blue = z + cMin;

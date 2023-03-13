@@ -1,27 +1,20 @@
 package frc.robot.subsystems;
 
-import java.util.HashMap;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.DoubleSupplier;
-
 import org.opencv.core.Point;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkMax.ControlType;
-import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.SparkMaxPIDController;
-
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotProperties;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.ArmPresets;
 
@@ -31,82 +24,46 @@ import frc.robot.constants.ArmPresets;
  * Uses 3 NEO motors, 1 absolute encoder and 1 quadrature encoder.
  */
 public class Arm extends SubsystemBase {
-    public boolean isConeMode;
+    public static boolean isConeMode = false;
 
     CANSparkMax pivotMotor1 = new CANSparkMax(ArmConstants.kPivotPort1, MotorType.kBrushless);
     CANSparkMax pivotMotor2 = new CANSparkMax(ArmConstants.kPivotPort2, MotorType.kBrushless);
 
     CANSparkMax extensionMotor = new CANSparkMax(ArmConstants.kExtensionPort, MotorType.kBrushless);
 
-    Encoder pivotEncoder = new Encoder(ArmConstants.kPivotEncoderSourceA, ArmConstants.kPivotEncoderSourceB);
+    RelativeEncoder pivotEncoder = pivotMotor1.getEncoder();
     RelativeEncoder extensionEncoder = extensionMotor.getEncoder();
 
     DigitalInput pivotSwitchMin = new DigitalInput(ArmConstants.kPivotSwitchMinChannel);
     DigitalInput pivotSwitchMax = new DigitalInput(ArmConstants.kPivotSwitchMaxChannel);
-    DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kEncoderSwitchMinChannel);
-    DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kEncoderSwitchMaxChannel);
+    DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
+    DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
 
-    SparkMaxPIDController pivotController = pivotMotor1.getPIDController();
-    SparkMaxPIDController extensionController = extensionMotor.getPIDController();
+    Path newfilePath = Filesystem.getOperatingDirectory().toPath().resolve("tuning.txt");
 
-    ArmFeedforward pivotFeedforward;
-        // TODO: multiply kG by cosine of the arm's angle relative to being vertical
-    ElevatorFeedforward extenstionFeedforward; 
-
-    HashMap<String, Double> pivotMap;
-    HashMap<String, Double> extensionMap;
-
-    TrapezoidProfile.Constraints pivotConstraints = new TrapezoidProfile.Constraints(0, 0);
-    TrapezoidProfile.State pivotGoal = new TrapezoidProfile.State();
-    TrapezoidProfile.State pivotCurrPoint = new TrapezoidProfile.State();
-    TrapezoidProfile pivotProfile;
-
-    TrapezoidProfile.Constraints extensionConstraints = new TrapezoidProfile.Constraints(0, 0);
-    TrapezoidProfile.State extensionGoal = new TrapezoidProfile.State();
-    TrapezoidProfile.State extensionCurrPoint = new TrapezoidProfile.State();
-    TrapezoidProfile extensionProfile;
-    
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
      */
     public Arm() {
-        pivotMotor1.setIdleMode(IdleMode.kBrake);
         pivotMotor2.follow(pivotMotor1);
-
-        extensionMotor.setIdleMode(IdleMode.kBrake);
-
-        pivotEncoder.setDistancePerPulse(ArmConstants.kPivotEncoderDistance);
-        extensionEncoder.setPositionConversionFactor(ArmConstants.kExtensionEncoderDistance);
-
-        pivotMap = RobotProperties.loadPIDConstants("PivotPID", pivotController);
-        pivotFeedforward = new ArmFeedforward(
-            pivotMap.get("kS"),
-            pivotMap.get("kG"),
-            pivotMap.get("kV"),
-            pivotMap.get("kA")
-        );
-
-        extensionMap = RobotProperties.loadPIDConstants("ExtensionPID", extensionController);
-        extenstionFeedforward = new ElevatorFeedforward(
-            extensionMap.get("kS"),
-            extensionMap.get("kG"),
-            extensionMap.get("kV"),
-            extensionMap.get("kA")
-        );
+        
+        try {
+            Files.createFile(newfilePath);
+            FileWriter fWriter = new FileWriter(newfilePath.toString(), true);
+            BufferedWriter bWriter = new BufferedWriter(fWriter);
+            bWriter.write("\n\n// New Enable Period //\n");
+            bWriter.write("Pivot:                 Extension:");
+            bWriter.newLine();
+            bWriter.close();
+            System.out.println("File Successfully Created.");
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("File Already Exists or is Corrupted.");
+        }
     }
     
-    /**
-     * Moves the position of the {@link Arm} subsystem to the desired preset position.
-     * @param preset A {@link Point} object representing a point in cartesian coordinate space to move to.
-     */
-    public CommandBase setTargetPoint(ArmPresets preset) {
-        return run(
-            () -> {
-                setTargetPoint(preset.value);
-            }
-        );
-    }
-
+    
     /**
      * Moves the position of the {@link Arm} subsystem using manual operator controls. <p>
      * Gives the ability to control both rotation and extension of the arm.
@@ -116,10 +73,62 @@ public class Arm extends SubsystemBase {
     public CommandBase setArmSpeeds(DoubleSupplier extension, DoubleSupplier rotation) {
         return run(
             () -> {
-                setArmSpeeds(extension.getAsDouble()/2, rotation.getAsDouble()/2);
-                // limitResetEncoders();
+                double rot = rotation.getAsDouble();
+                double ext = extension.getAsDouble();
+                if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
+                    pivotMotor1.set(0.0);
+                else 
+                    pivotMotor1.set(
+                        lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + 0.25 * rot
+                    );
+        
+                // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
+                //     extensionMotor.set(-1.0); 
+                if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
+                    extensionMotor.set(0.0);
+                else
+                    extensionMotor.set(ext/2);
             }
         );
+    }
+
+    /**
+     * Moves the position of the {@link Arm} subsystem to the desired preset position.
+     * @param preset A {@link Point} object representing a point in cartesian coordinate space to move to.
+     */
+    public CommandBase setTargetPoint(ArmPresets preset) {
+        return run(
+            () -> {
+                double pivotError = preset.value.x - pivotEncoder.getPosition();
+                double pivotProportional = ArmConstants.kPPivot * pivotError;
+                pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxSpeed);
+                pivotMotor1.set(
+                    lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
+                );
+                     
+                double extError = preset.value.y - extensionEncoder.getPosition();
+                double extensionProportional = ArmConstants.kPExtension * extError;
+                extensionProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxSpeed);
+                extensionMotor.set(extensionProportional);
+            }
+        );
+    }
+
+    /**
+     * Clamps the desired error between a max/min speed
+     * @param error Desired error
+     * @param limit Speed limit
+     * @return The clamped error
+     */
+    double checkSpeedLimit(double error, double limit) {
+        double outError=error;
+        if(outError > limit) {
+            outError = limit;
+        }
+        if (outError < -limit) {
+            outError = -limit;
+        }
+        return outError;
     }
 
     /**
@@ -140,7 +149,7 @@ public class Arm extends SubsystemBase {
      */
     void limitResetEncoders() {
         if (pivotSwitchMin.get() || pivotSwitchMax.get()) {
-            pivotEncoder.reset();
+            pivotEncoder.setPosition(0);
         }
         if (encoderSwitchMin.get() || encoderSwitchMax.get()) {
             extensionEncoder.setPosition(0);
@@ -148,104 +157,77 @@ public class Arm extends SubsystemBase {
     }
 
     /**
-     * Manually set the speeds for the extension and pivot of the {@link Arm} subsystem
-     * @param ext the speed to extend at
-     * @param rot the speed to pivot at
+     * Creates a feed forward value at the minimum extension
+     * @param encoderPos Encoder position
+     * @return Feed forward
      */
-    void setArmSpeeds(double ext, double rot) {
-        if (isAtLimit(pivotEncoder.getDistance(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
-            pivotMotor1.set(0.0);
-        else 
-            pivotMotor1.set(rot);
-
-        // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
-        //     extensionMotor.set(-1.0);
-        if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
-            extensionMotor.set(0.0);
-        else
-            extensionMotor.set(ext);
+    double mapEncoderOutputIn(double encoderPos) {
+        double deg1 = 0.00679 * encoderPos;
+        double deg2 = -0.00549 * Math.pow(encoderPos, 2);
+        double deg3 = -0.00103 * Math.pow(encoderPos, 3);
+        double deg4 = -0.000043 * Math.pow(encoderPos, 4);
+        return 0.000134 + deg1 + deg2 + deg3 + deg4;
     }
 
     /**
-     * Sets the target position for the end effector to travel towards.
-     * @param point A {@link Point} object representing a point in cartesian coordinate space to move to.
+     * Creates a feed forward value at the maximum extension
+     * @param encoderPos Encoder position
+     * @return Feed forward
      */
-    void setTargetPoint(Point point) {
-        double angle = Math.atan(point.y/point.x);
-        double distance = Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
-        
-        // the length of the arm and end effector before any transformations
-        double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
-
-        if (distance - baseLength >= ArmConstants.kArmMaxExtensionLength || distance - baseLength < 0) {
-            DriverStation.reportError("Not a valid distance; outside safe range.", null);
-            return;
-        }
-        if (angle >= ArmConstants.kMaxPivotAngle || angle <= ArmConstants.kMinPivotAngle) {
-            DriverStation.reportError("Not a valid pivot angle; outside safe range.", null);
-            return;
-        }
-        if (point.y >= ArmConstants.kMaxHeight) {
-            DriverStation.reportError("Cannot extend; Y coordinate is above max height.", null);
-            return;
-        }
-
-        pivotGoal.position = angle;
-        extensionGoal.position = distance - baseLength;
-        
-        pivotProfile = new TrapezoidProfile(pivotConstraints, pivotGoal, pivotCurrPoint);
-        extensionProfile = new TrapezoidProfile(extensionConstraints, extensionGoal, extensionCurrPoint);
-
-        pivotCurrPoint = pivotProfile.calculate(0.02);
-        extensionCurrPoint = extensionProfile.calculate(0.02);
-
-        pivotController.setReference(pivotCurrPoint.position, ControlType.kPosition, 0, 
-            pivotFeedforward.calculate(pivotEncoder.getDistance(), 0)
-        );
-
-        extensionController.setReference(extensionCurrPoint.position, ControlType.kPosition, 0, 
-            (extenstionFeedforward.calculate(extensionEncoder.getVelocity()) * Math.sin(pivotCurrPoint.position))
-        );
+    double mapEncoderOutputOut(double encoderPos) {
+        // 4th degree polynomial to calculate the feed forward.
+        // Essentially equal to the 'kS' value in a WPILib feed forward.
+        double deg1 = 0.0115 * encoderPos;
+        double deg2 = -0.0117 * Math.pow(encoderPos, 2);
+        double deg3 = -0.00176 * Math.pow(encoderPos, 3);
+        double deg4 = -0.0000565 * Math.pow(encoderPos, 4);
+        return -0.00224 + deg1 + deg2 + deg3 + deg4;
     }
 
     /**
-     * Gets the current position of the end effector in cartesian coordinate space.
-     * @return A {@link Point} object representing the current position in cartesian coordinate space.
+     * Interpolates between the minimum and maximum extension feed forwards to produce a feed forward at desired extension
+     * @param pivotPos Pivot encoder position
+     * @param extensionPos Extension encoder position
+     * @return Interpolated feed forward
      */
-    public Point getCurrentPoint() {
-        Point point = new Point();
+    double lerpRequiredOutput(double pivotPos, double extensionPos) {
+        if(pivotPos > 0){
+            // Minimum allowed pivot position
+            return 0.01;
+        }
+        double a = mapEncoderOutputIn(pivotPos) * (0.0260078 * extensionPos + 1.0130039);
+        double b = mapEncoderOutputOut(pivotPos) * (-0.0260078 * extensionPos - 0.0130039);
 
-        // the length of the arm and end effector before any transformations
-        double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
-        
-        // the length of the arm and end effector after transformations
-        double extensionLength = baseLength + extensionEncoder.getPosition();
-        
-        point.x = extensionLength * Math.cos(pivotEncoder.getDistance());
-        point.y = extensionLength * Math.sin(pivotEncoder.getDistance());
-        return point;
+        return a + b;
+    }
+
+    public CommandBase snapshotEncoderPosition() {
+        return runOnce(
+            () -> {
+                try {
+                    FileWriter fw = new FileWriter(newfilePath.toString(), true);
+                    BufferedWriter bWriter = new BufferedWriter(fw);
+                    bWriter.write(Double.toString(pivotEncoder.getPosition()) + "   ");
+                    bWriter.write(Double.toString(extensionEncoder.getPosition()));
+                    bWriter.newLine();
+                    bWriter.close();
+                    System.out.println("File wrote successfully.");
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("File does not exist or is corrupted.");
+                }
+            }
+        );
     }
 
     @Override
     public void periodic() {
-        updateShuffleboard(pivotMap, pivotController);
-        updateShuffleboard(extensionMap, extensionController);
-    }
-
-    void updateShuffleboard(HashMap<String, Double> map, SparkMaxPIDController controller) {
-        double p = SmartDashboard.getNumber("kP", map.get("kP"));
-        double i = SmartDashboard.getNumber("kI", map.get("kI"));
-        double d = SmartDashboard.getNumber("kD", map.get("kD"));
-        double iz = SmartDashboard.getNumber("Izone", map.get("kIz"));
-
-        if (p != map.get("kP")) controller.setP(p);
-        if (i != map.get("kI")) controller.setI(i);
-        if (d != map.get("kD")) controller.setD(d);
-        if (iz != map.get("kIz")) controller.setIZone(iz);
+        SmartDashboard.putNumber("Pivot Encoder", pivotEncoder.getPosition());
+        SmartDashboard.putNumber("Pivot Output", pivotMotor1.getAppliedOutput());
         
-        SmartDashboard.putNumber("kS", map.get("kS"));
-        SmartDashboard.putNumber("kG", map.get("kG"));
-        SmartDashboard.putNumber("kV", map.get("kV"));
-        SmartDashboard.putNumber("kA", map.get("kA"));
+        SmartDashboard.putNumber("Extension Encoder", extensionEncoder.getPosition());
+        SmartDashboard.putNumber("Extension Output", extensionMotor.getAppliedOutput());
+        SmartDashboard.putNumber("Extension Current", extensionMotor.getOutputCurrent());
     }
 }

@@ -3,18 +3,20 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.constants.IntakeConstants;
 
 /**
  * The Intake subsystem allows control over a single NEO motor.
  */
 public class Intake extends SubsystemBase {
+
     CANSparkMax motor = new CANSparkMax(IntakeConstants.kMotorPort, MotorType.kBrushless);
-    DigitalInput gamePieceSensor = new DigitalInput(IntakeConstants.kBreakBeamSensorPort);
+    public Trigger hitCurrentLimit = new Trigger(() -> { return motor.getOutputCurrent() > IntakeConstants.kCurrentLimit; });
 
     /**
      * Sets the speed of the intake motor. This command will stop 
@@ -28,13 +30,19 @@ public class Intake extends SubsystemBase {
             () -> { motor.set(speed); },
             
             // end
-            isFinished -> { motor.set(0.0); },
+            isFinished -> { motor.set(0); },
 
             // isFinished?
-            () -> !gamePieceSensor.get(),
+            () -> false,
 
             // subsystem requirement
             this
         );
+    }
+
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Intake Current", motor.getOutputCurrent());
     }
 }
