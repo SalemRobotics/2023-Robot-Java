@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.commands.IntakePresetCommand;
 import frc.robot.constants.ArmPresets;
 import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.XBConstants;
@@ -35,18 +34,18 @@ public class RobotContainer {
     configureBindings();
 
     drivetrain.setDefaultCommand(
-      drivetrain.arcadeDrive(driverController::getRightX, driverController::getLeftY)
+      drivetrain.arcadeDrive(driverController::getLeftX, driverController::getLeftY)
     );
 
     // Uses joysticks to control the rotation and extension of the arm.
     // Left stick: Extension, Right stick: Rotation
-    // arm.setDefaultCommand(
-    //   arm.setTargetPoint(ArmPresets.DEFAULT)
-    // );
-
     arm.setDefaultCommand(
-      arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY)
+      arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT)
     );
+
+    // arm.setDefaultCommand(
+    //   arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY)
+    // );
 
     led.setDefaultCommand(led.solidTeamColor());
   }
@@ -74,26 +73,25 @@ public class RobotContainer {
       // B = Mid goal
       // Y = High goal
       // X = Manual Control
-    // new JoystickButton(operatorController, Button.kA.value)
-    // .whileTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_LOW_GOAL : ArmPresets.CUBE_LOW_GOAL));
+    new JoystickButton(operatorController, Button.kA.value)
+    .whileTrue(arm.setTargetPoint(ArmPresets.CUBE_LOW_GOAL, ArmPresets.CONE_LOW_GOAL));
 
-    // new JoystickButton(operatorController, Button.kB.value)
-    // .whileTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_MID_GOAL : ArmPresets.CUBE_MID_GOAL));
+    new JoystickButton(operatorController, Button.kB.value)
+    .whileTrue(arm.setTargetPoint(ArmPresets.CUBE_MID_GOAL, ArmPresets.CONE_MID_GOAL));
 
-    // new JoystickButton(operatorController, Button.kY.value)
-    // .whileTrue(arm.setTargetPoint(arm.isConeMode ? ArmPresets.CONE_HIGH_GOAL : ArmPresets.CUBE_HIGH_GOAL));
+    new JoystickButton(operatorController, Button.kY.value)
+    .whileTrue(arm.setTargetPoint(ArmPresets.CUBE_HIGH_GOAL, ArmPresets.CONE_HIGH_GOAL));
 
-    // new JoystickButton(operatorController, Button.kX.value)
-    // .whileTrue(arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY));
+    new JoystickButton(operatorController, Button.kX.value)
+    .whileTrue(arm.setArmSpeeds(operatorController::getLeftY, operatorController::getRightY));
     
       // Snapshot encoder positions
-    new JoystickButton(operatorController, Button.kA.value)
-    .onTrue(arm.snapshotEncoderPosition());
+    // new JoystickButton(operatorController, Button.kA.value)
+    // .onTrue(arm.snapshotEncoderPosition());
 
-      // Intake: will move to intake position and run intake
+      // Intake: will run intake
     new JoystickButton(operatorController, Button.kRightBumper.value)
-    .whileTrue(new IntakePresetCommand(arm, intake, IntakeConstants.kIntakeInSpeed))
-    .onFalse(arm.setTargetPoint(ArmPresets.DEFAULT));
+    .whileTrue(intake.intakeRun(IntakeConstants.kIntakeInSpeed));
 
       // Blink green when gamepiece is aquired, to notify the operator to stop. Also rumbles controller.
     intake.hitCurrentLimit.whileTrue(
@@ -102,7 +100,11 @@ public class RobotContainer {
         driverController.setRumble(RumbleType.kBothRumble, 1); 
         operatorController.setRumble(RumbleType.kBothRumble, 1);
       }))
-    ).onFalse(led.gamepieceSolidColor());
+    ).onFalse(led.gamepieceSolidColor()
+    .alongWith(new RunCommand(() -> {
+      driverController.setRumble(RumbleType.kBothRumble, 0);
+      operatorController.setRumble(RumbleType.kBothRumble, 0);
+    })));
     
       // Release game piece
     new JoystickButton(operatorController, Button.kLeftBumper.value)

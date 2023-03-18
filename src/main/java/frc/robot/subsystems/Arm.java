@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -53,7 +52,7 @@ public class Arm extends SubsystemBase {
      */
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
-        datalines.add(new String[] {"Pivot:", "Pivot Output", "Extension:", "Pivot Output:"});
+        datalines.add(new String[] {"Pivot:", "Pivot Output:", "Extension:", "Extension Output:"});
         try {
             Files.createFile(newfilePath);
             writeCSV();
@@ -63,7 +62,6 @@ public class Arm extends SubsystemBase {
             e.printStackTrace();
         }
     }
-    
     
     /**
      * Moves the position of the {@link Arm} subsystem using manual operator controls. <p>
@@ -99,17 +97,19 @@ public class Arm extends SubsystemBase {
      * Moves the position of the {@link Arm} subsystem to the desired preset position.
      * @param preset A {@link Point} object representing a point in cartesian coordinate space to move to.
      */
-    public CommandBase setTargetPoint(ArmPresets preset) {
+    public CommandBase setTargetPoint(ArmPresets cubePreset, ArmPresets conePreset) {
         return run(
             () -> {
-                double pivotError = preset.value.x - pivotEncoder.getPosition();
+                double pivotPreset = isConeMode ? conePreset.value.x : cubePreset.value.x;
+                double pivotError = pivotPreset - pivotEncoder.getPosition();
                 double pivotProportional = ArmConstants.kPPivot * pivotError;
                 pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxSpeed);
                 pivotMotor1.set(
                     lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
                 );
 
-                double extError = preset.value.y - extensionEncoder.getPosition();
+                double extPreset = isConeMode ? conePreset.value.y : cubePreset.value.y;
+                double extError = extPreset - extensionEncoder.getPosition();
                 double extensionProportional = ArmConstants.kPExtension * extError;
                 extensionProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxSpeed);
                 extensionMotor.set(extensionProportional);
@@ -159,15 +159,13 @@ public class Arm extends SubsystemBase {
         else if (extensionSwitchMax.get()) extensionEncoder.setPosition(0);
     }
 
-
-
     /**
      * Maps the pivot's encoder to degrees. 
-     * @param encoderPos
-     * @return
+     * @param encoderPos Current encoder position
+     * @return Current pivot angle, in degrees
      */
     double mapPivotAngle(double encoderPos) {
-
+        
         return 0;
     }
 
@@ -177,11 +175,11 @@ public class Arm extends SubsystemBase {
      * @return Feed forward
      */
     double mapEncoderOutputIn(double encoderPos) {
-        double deg1 = 0.00679 * encoderPos;
-        double deg2 = -0.00549 * Math.pow(encoderPos, 2);
-        double deg3 = -0.00103 * Math.pow(encoderPos, 3);
-        double deg4 = -0.000043 * Math.pow(encoderPos, 4);
-        return 0.000134 + deg1 + deg2 + deg3 + deg4;
+        double deg1 = 6.37E-3 * encoderPos;
+        double deg2 = -2.8E-3 * Math.pow(encoderPos, 2);
+        double deg3 = -4.27E-4 * Math.pow(encoderPos, 3);
+        double deg4 = -1.14E-5 * Math.pow(encoderPos, 4);
+        return 0.0113 + deg1 + deg2 + deg3 + deg4;
     }
 
     /**
@@ -192,11 +190,11 @@ public class Arm extends SubsystemBase {
     double mapEncoderOutputOut(double encoderPos) {
         // 4th degree polynomial to calculate the feed forward.
         // Essentially equal to the 'kS' value in a WPILib feed forward.
-        double deg1 = 0.0115 * encoderPos;
-        double deg2 = -0.0117 * Math.pow(encoderPos, 2);
-        double deg3 = -0.00176 * Math.pow(encoderPos, 3);
-        double deg4 = -0.0000565 * Math.pow(encoderPos, 4);
-        return -0.00224 + deg1 + deg2 + deg3 + deg4;
+        double deg1 = 0.0166 * encoderPos;
+        double deg2 = -0.0103 * Math.pow(encoderPos, 2);
+        double deg3 = -1.94E-3 * Math.pow(encoderPos, 3);
+        double deg4 = -7.97E-5 * Math.pow(encoderPos, 4);
+        return 4.67E-3 + deg1 + deg2 + deg3 + deg4;
     }
 
     /**
@@ -235,13 +233,11 @@ public class Arm extends SubsystemBase {
     }
 
     void writeCSV() throws IOException {
-        File output = new File(newfilePath.toString());
-        try (PrintWriter pw = new PrintWriter(output)) {
+        try (PrintWriter pw = new PrintWriter(newfilePath.toString())) {
             datalines.stream()
             .map(this::toCSV)
             .forEach(pw::println);
         }
-        assert(output.exists());
     }
 
     String toCSV(String[] data) {
@@ -267,5 +263,7 @@ public class Arm extends SubsystemBase {
         SmartDashboard.putNumber("Extension Encoder", extensionEncoder.getPosition());
         SmartDashboard.putNumber("Extension Output", extensionMotor.getAppliedOutput());
         SmartDashboard.putNumber("Extension Current", extensionMotor.getOutputCurrent());
+
+        SmartDashboard.putBoolean("Cone Mode", Arm.isConeMode);
     }
 }

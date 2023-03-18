@@ -27,7 +27,10 @@ public class Intake extends SubsystemBase {
             ()->{},
 
             // execute
-            () -> { motor.set(speed); },
+            () -> { 
+                double temp = Arm.isConeMode ? -speed : speed;
+                motor.set(temp); 
+            },
             
             // end
             isFinished -> { motor.set(0); },
