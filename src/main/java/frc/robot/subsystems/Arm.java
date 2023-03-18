@@ -1,11 +1,15 @@
 package frc.robot.subsystems;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.opencv.core.Point;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -36,30 +40,27 @@ public class Arm extends SubsystemBase {
 
     DigitalInput pivotSwitchMin = new DigitalInput(ArmConstants.kPivotSwitchMinChannel);
     DigitalInput pivotSwitchMax = new DigitalInput(ArmConstants.kPivotSwitchMaxChannel);
-    DigitalInput encoderSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
-    DigitalInput encoderSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
+    DigitalInput extensionSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
+    DigitalInput extensionSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
 
-    Path newfilePath = Filesystem.getOperatingDirectory().toPath().resolve("tuning.txt");
+    
+    // csv data
+    List<String[]> datalines = new ArrayList<>();
+    Path newfilePath = Filesystem.getOperatingDirectory().toPath().resolve("tuning.csv");
 
     /**
      * Constructs an Arm object that specifies the behavior of the PID controllers and encoders.
      */
     public Arm() {
         pivotMotor2.follow(pivotMotor1);
-        
+        datalines.add(new String[] {"Pivot:", "Pivot Output", "Extension:", "Pivot Output:"});
         try {
             Files.createFile(newfilePath);
-            FileWriter fWriter = new FileWriter(newfilePath.toString(), true);
-            BufferedWriter bWriter = new BufferedWriter(fWriter);
-            bWriter.write("\n\n// New Enable Period //\n");
-            bWriter.write("Pivot:                 Extension:");
-            bWriter.newLine();
-            bWriter.close();
-            System.out.println("File Successfully Created.");
-        } 
-        catch (IOException e) {
+            writeCSV();
+            System.out.println("File created successfully");
+        } catch (IOException e) {
+            System.out.println("File already exists or path not found");
             e.printStackTrace();
-            System.out.println("File Already Exists or is Corrupted.");
         }
     }
     
@@ -75,6 +76,7 @@ public class Arm extends SubsystemBase {
             () -> {
                 double rot = rotation.getAsDouble();
                 double ext = extension.getAsDouble();
+
                 if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
                     pivotMotor1.set(0.0);
                 else 
@@ -82,9 +84,10 @@ public class Arm extends SubsystemBase {
                         lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + 0.25 * rot
                     );
         
+                double extPosInches = extensionEncoder.getPosition() * ArmConstants.kExtensionDistanceFactor;
                 // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
                 //     extensionMotor.set(-1.0); 
-                if (isAtLimit(extensionEncoder.getPosition(), 0.0, ArmConstants.kArmMaxExtensionLength, ext))
+                if (isAtLimit(extPosInches, 0.0, ArmConstants.kArmMaxExtensionLength, ext))
                     extensionMotor.set(0.0);
                 else
                     extensionMotor.set(ext/2);
@@ -105,11 +108,12 @@ public class Arm extends SubsystemBase {
                 pivotMotor1.set(
                     lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
                 );
-                     
+
                 double extError = preset.value.y - extensionEncoder.getPosition();
                 double extensionProportional = ArmConstants.kPExtension * extError;
                 extensionProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxSpeed);
                 extensionMotor.set(extensionProportional);
+                // extensionMotor.set(extensionProportional * mapPivotAngle(pivotEncoder.getPosition()));
             }
         );
     }
@@ -147,17 +151,28 @@ public class Arm extends SubsystemBase {
     /**
      * Resets either the pivot or extension encoders to 0 if their respective limit switches are pressed
      */
-    void limitResetEncoders() {
-        if (pivotSwitchMin.get() || pivotSwitchMax.get()) {
-            pivotEncoder.setPosition(0);
-        }
-        if (encoderSwitchMin.get() || encoderSwitchMax.get()) {
-            extensionEncoder.setPosition(0);
-        }
+    void checkResetEncoders() {
+        if (pivotSwitchMin.get()) pivotEncoder.setPosition(0);
+        else if (pivotSwitchMax.get()) pivotEncoder.setPosition(0);
+
+        if (extensionSwitchMin.get()) extensionEncoder.setPosition(0);
+        else if (extensionSwitchMax.get()) extensionEncoder.setPosition(0);
+    }
+
+
+
+    /**
+     * Maps the pivot's encoder to degrees. 
+     * @param encoderPos
+     * @return
+     */
+    double mapPivotAngle(double encoderPos) {
+
+        return 0;
     }
 
     /**
-     * Creates a feed forward value at the minimum extension
+     * Creates a feed forward value based on the encoder position. Data collected at minimum extension.
      * @param encoderPos Encoder position
      * @return Feed forward
      */
@@ -170,7 +185,7 @@ public class Arm extends SubsystemBase {
     }
 
     /**
-     * Creates a feed forward value at the maximum extension
+     * Creates a feed forward value based on the encoder position. Data collected at minimum extension.
      * @param encoderPos Encoder position
      * @return Feed forward
      */
@@ -204,21 +219,44 @@ public class Arm extends SubsystemBase {
     public CommandBase snapshotEncoderPosition() {
         return runOnce(
             () -> {
+                String pivotPos = Double.toString(pivotEncoder.getPosition());
+                String pivotOut = Double.toString(pivotMotor1.getAppliedOutput());
+                String extensionPos = Double.toString(extensionEncoder.getPosition());
+                String extensionOut = Double.toString(extensionMotor.getAppliedOutput());
+                datalines.add(new String[] {pivotPos, pivotOut, extensionPos, extensionOut});
                 try {
-                    FileWriter fw = new FileWriter(newfilePath.toString(), true);
-                    BufferedWriter bWriter = new BufferedWriter(fw);
-                    bWriter.write(Double.toString(pivotEncoder.getPosition()) + "   ");
-                    bWriter.write(Double.toString(extensionEncoder.getPosition()));
-                    bWriter.newLine();
-                    bWriter.close();
-                    System.out.println("File wrote successfully.");
-                }
-                catch (IOException e) {
+                    writeCSV();
+                    System.out.println("File successfully written");
+                } catch (IOException e) {
                     e.printStackTrace();
-                    System.out.println("File does not exist or is corrupted.");
                 }
             }
         );
+    }
+
+    void writeCSV() throws IOException {
+        File output = new File(newfilePath.toString());
+        try (PrintWriter pw = new PrintWriter(output)) {
+            datalines.stream()
+            .map(this::toCSV)
+            .forEach(pw::println);
+        }
+        assert(output.exists());
+    }
+
+    String toCSV(String[] data) {
+        return Stream.of(data)
+        .map(this::escapeSpecialChars)
+        .collect(Collectors.joining(","));
+    }
+
+    String escapeSpecialChars(String data) {
+        String escapedData = data.replaceAll("\\R", " ");
+        if (data.contains(",") || data.contains("\"") || data.contains("'")) {
+            data = data.replace("\"", "\"\"");
+            escapedData = "\"" + data + "\"";
+        }
+        return escapedData;
     }
 
     @Override
