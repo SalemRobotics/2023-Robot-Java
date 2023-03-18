@@ -3,8 +3,10 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
+public class RobotContainer {
 
-import edu.wpi.first.wpilibj.XboxController;
+  private final Drivetrain robotDrive = new Drivetrain();
+  private final PathPlannerDriveCommand pathPlannerCommand = new PathPlannerDriveCommand(robotDrive);
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +21,7 @@ import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.StatusLED;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.commands.PathPlannerDriveCommand;
 
 public class RobotContainer {
   final XboxController driverController = new XboxController(XBConstants.kDriverPort);
@@ -49,7 +52,7 @@ public class RobotContainer {
 
     led.setDefaultCommand(led.solidTeamColor());
   }
-
+  
   private void configureBindings() {
 
     /* Driver Controller */
@@ -112,7 +115,7 @@ public class RobotContainer {
   }
     
   public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
+    return pathPlannerCommand.getCommand();
   }
 
   public Command getDisabledCommand() {
