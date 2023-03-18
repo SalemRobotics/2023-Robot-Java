@@ -3,14 +3,10 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-public class RobotContainer {
-
-  private final Drivetrain robotDrive = new Drivetrain();
-  private final PathPlannerDriveCommand pathPlannerCommand = new PathPlannerDriveCommand(robotDrive);
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -30,6 +26,7 @@ public class RobotContainer {
   final Drivetrain drivetrain = new Drivetrain();
   final Arm arm = new Arm();
   final Intake intake = new Intake();
+  final PathPlannerDriveCommand pathPlannerCommand = new PathPlannerDriveCommand(drivetrain);
 
   final StatusLED led = new StatusLED();
 
