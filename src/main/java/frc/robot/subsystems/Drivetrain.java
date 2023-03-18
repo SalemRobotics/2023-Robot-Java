@@ -41,13 +41,13 @@ public class Drivetrain extends SubsystemBase {
 
     /** 
      * Sets tank drive speeds for motors
-     * @param left the speed for the left-side motors
-     * @param right the speed for the right-side motors
+     * @param forward the speed for driving forward
+     * @param rotation the speed for rotation
      */
-    public CommandBase arcadeDrive(DoubleSupplier left, DoubleSupplier right) {
+    public CommandBase arcadeDrive(DoubleSupplier forward, DoubleSupplier rotation) {
         return run(
             () -> { // this is a lambda function to call arcade drive
-                drive.arcadeDrive(left.getAsDouble(), -right.getAsDouble(), true);
+                drive.arcadeDrive(forward.getAsDouble(), -rotation.getAsDouble(), true);
             }
         );
     }
