@@ -75,7 +75,8 @@ public class Arm extends SubsystemBase {
                 double rot = rotation.getAsDouble();
                 double ext = extension.getAsDouble();
 
-                if (isAtLimit(pivotEncoder.getPosition(), ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
+                double rotAngle = mapPivotAngle(rot);
+                if (isAtLimit(rotAngle, ArmConstants.kMinPivotAngle, ArmConstants.kMaxPivotAngle, rot))
                     pivotMotor1.set(0.0);
                 else 
                     pivotMotor1.set(
@@ -83,8 +84,8 @@ public class Arm extends SubsystemBase {
                     );
         
                 double extPosInches = extensionEncoder.getPosition() * ArmConstants.kExtensionDistanceFactor;
-                // if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
-                //     extensionMotor.set(-1.0); 
+                if (getCurrentPoint().y >= ArmConstants.kMaxHeight)
+                    extensionMotor.set(-1.0);
                 if (isAtLimit(extPosInches, 0.0, ArmConstants.kArmMaxExtensionLength, ext))
                     extensionMotor.set(0.0);
                 else
@@ -116,6 +117,21 @@ public class Arm extends SubsystemBase {
                 // extensionMotor.set(extensionProportional * mapPivotAngle(pivotEncoder.getPosition()));
             }
         );
+    }
+
+    Point getCurrentPoint() {
+        Point point = new Point();
+        
+        double rotAngleRad = mapPivotAngle(pivotEncoder.getPosition());
+        rotAngleRad = Math.toRadians(rotAngleRad);
+
+        double baseLength = ArmConstants.kArmRetractedLength + ArmConstants.kEndEffectorLength;
+        double extInches = extensionEncoder.getPosition() * ArmConstants.kExtensionDistanceFactor + baseLength;
+
+        point.x = extInches * Math.cos(rotAngleRad);
+        point.y = extInches * Math.sin(rotAngleRad);
+
+        return point;
     }
 
     /**
