@@ -16,12 +16,12 @@ public class DrivetrainConstants {
     public static final double kaVoltSecondsSquaredPerMeter=0.24729;
     public static final double trackWidthMeters=0.69215;
     public static final double kMaxSpeedMetersPerSecond=1.0936;
-    public static final double kMaxAccelerationMetersPerSecondSquared=0;
+    public static final double kMaxAccelerationMetersPerSecondSquared=0.2;
     public static final double kGyroAlignError=0;
 
-    public static final double kRamseteB=0;
-    public static final double kRamseteZeta=0;
-    public static final double kPDriveVel=0;
+    public static final double kRamseteB=2;
+    public static final double kRamseteZeta=0.7;
+    public static final double kPDriveVel=0.1;
     public static final double kIDriveVel=0;
     public static final double KDDriveVel=0;
 

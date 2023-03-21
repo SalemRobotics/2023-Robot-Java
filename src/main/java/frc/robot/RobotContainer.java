@@ -26,7 +26,7 @@ public class RobotContainer {
   final Drivetrain drivetrain = new Drivetrain();
   final Arm arm = new Arm();
   final Intake intake = new Intake();
-  final PathPlannerDriveCommand pathPlannerCommand = new PathPlannerDriveCommand(drivetrain);
+  final PathPlannerDriveCommand pathPlannerCommand = new PathPlannerDriveCommand(drivetrain, arm, intake);
 
   final StatusLED led = new StatusLED();
 
