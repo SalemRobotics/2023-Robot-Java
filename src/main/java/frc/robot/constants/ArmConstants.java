@@ -6,6 +6,13 @@ public class ArmConstants {
     public static final int kPivotPort2 = 6;
 
     public static final double kExtensionDistanceFactor = 11.811 / (42 * 16); // 11.811 in / 42 PPR * 16:1
+    public static final double kPivotAngleFactor = (2*Math.PI / 42) * (1/8.45) * (42/169); // radians
+    public static final double floorOffsetAngle = 0; // radians
+
+    public static final double kChooChooAxelDistance = 11.173; // inches
+    public static final double kMountLinkLength = 8.645; // inches
+    public static final double kChurroLinkLength = 9.5; // inches
+    public static final double kChooChooWheelRadius = 4.828; // inches
     
     public static final int kPivotSwitchMinChannel = 5;
     public static final int kPivotSwitchMaxChannel = 6;
@@ -13,10 +20,10 @@ public class ArmConstants {
     public static final int kExtensionSwitchMaxChannel = 8;
 
     public static final double kPPivot = 0.15;
-    public static final double kPivotMaxSpeed = 0.18;
+    public static final double kPivotMaxOutput = 0.18;
 
     public static final double kPExtension = 0.11;
-    public static final double kExtensionMaxSpeed = 0.6;
+    public static final double kExtensionMaxOutput = 0.6;
     
     public static final double kMaxHeight = 77.5; // inches
     public static final double kArmRetractedLength = 42.75; // inches

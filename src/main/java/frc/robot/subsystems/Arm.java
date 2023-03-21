@@ -104,7 +104,7 @@ public class Arm extends SubsystemBase {
                 double pivotPreset = isConeMode ? conePreset.value.x : cubePreset.value.x;
                 double pivotError = pivotPreset - pivotEncoder.getPosition();
                 double pivotProportional = ArmConstants.kPPivot * pivotError;
-                pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxSpeed);
+                pivotProportional = checkSpeedLimit(pivotProportional, ArmConstants.kPivotMaxOutput);
                 pivotMotor1.set(
                     lerpRequiredOutput(pivotEncoder.getPosition(), extensionEncoder.getPosition()) + pivotProportional
                 );
@@ -112,9 +112,9 @@ public class Arm extends SubsystemBase {
                 double extPreset = isConeMode ? conePreset.value.y : cubePreset.value.y;
                 double extError = extPreset - extensionEncoder.getPosition();
                 double extensionProportional = ArmConstants.kPExtension * extError;
-                extensionProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxSpeed);
-                extensionMotor.set(extensionProportional);
-                // extensionMotor.set(extensionProportional * mapPivotAngle(pivotEncoder.getPosition()));
+                extensionProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxOutput);
+                extensionMotor.set(extensionProportional * Math.sin(mapPivotAngle(pivotEncoder.getPosition())/2 + 0.5));
+                // extensionMotor.set(extensionProportional);
             }
         );
     }
@@ -181,8 +181,23 @@ public class Arm extends SubsystemBase {
      * @return Current pivot angle, in degrees
      */
     double mapPivotAngle(double encoderPos) {
+        double chooChooAngle = encoderPos * ArmConstants.kPivotAngleFactor;
+
+        double crankX = (ArmConstants.kChooChooWheelRadius * Math.cos(chooChooAngle)) - ArmConstants.kChooChooAxelDistance;
+        double crankY = ArmConstants.kChooChooWheelRadius * Math.sin(chooChooAngle);
         
-        return 0;
+        double e = Math.sqrt(
+            Math.pow(crankX, 2) + 
+            Math.pow(crankY, 2)
+        );
+
+        double phi1 = Math.atan2(crankY, crankX) + (1 - Math.signum(crankX) * Math.PI / 2);
+        double phi2 = Math.acos(
+            (e*e + Math.pow(ArmConstants.kMountLinkLength, 2)) - Math.pow(ArmConstants.kChurroLinkLength, 2) / 
+            (2 * e * ArmConstants.kMountLinkLength)
+        );
+        
+        return phi1 - phi2 + ArmConstants.floorOffsetAngle;
     }
 
     /**
