@@ -2,13 +2,11 @@ package frc.robot.commands;
 
 import java.util.HashMap;
 import java.util.List;
-
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.RamseteAutoBuilder;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -23,9 +21,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.constants.ArmPresets;
 import frc.robot.constants.DrivetrainConstants;
+import frc.robot.constants.IntakeConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
@@ -38,18 +41,18 @@ public class PathPlannerDriveCommand extends CommandBase {
     final DifferentialDriveKinematics driveKinematics = new DifferentialDriveKinematics(DrivetrainConstants.trackWidthMeters);
 
     public PathPlannerDriveCommand(Drivetrain drive, Arm arm, Intake intake) {
-        m_chooser.setDefaultOption(DrivetrainConstants.kBottomPath, createPathCommand(DrivetrainConstants.kBottomPath));
-        m_chooser.addOption(DrivetrainConstants.kBottomPathOneScore, createPathCommand(DrivetrainConstants.kBottomPathOneScore));
-        m_chooser.addOption(DrivetrainConstants.kBottomPathNoEngage, createPathCommand(DrivetrainConstants.kBottomPathNoEngage));
-        m_chooser.addOption(DrivetrainConstants.kTopPathNoEngage, createPathCommand(DrivetrainConstants.kTopPathNoEngage));
-        m_chooser.addOption(DrivetrainConstants.kTopPath, createPathCommand(DrivetrainConstants.kTopPath));
-        m_chooser.addOption(DrivetrainConstants.kTopPathOneScore, createPathCommand(DrivetrainConstants.kTopPathOneScore));
-        m_chooser.addOption(DrivetrainConstants.kBottomPathOne, createPathCommand(DrivetrainConstants.kBottomPathOne));
-        SmartDashboard.putData(m_chooser);
-        this.drive=drive;
-        this.arm=arm;
-        this.intake=intake;
-        addRequirements(this.drive);
+      this.drive=drive;
+      this.arm=arm;
+      this.intake=intake;
+      m_chooser.setDefaultOption(DrivetrainConstants.kBottomPath, createPathCommand(DrivetrainConstants.kBottomPath));
+      m_chooser.addOption(DrivetrainConstants.kBottomPathOneScore, createPathCommand(DrivetrainConstants.kBottomPathOneScore));
+      m_chooser.addOption(DrivetrainConstants.kBottomPathNoEngage, createPathCommand(DrivetrainConstants.kBottomPathNoEngage));
+      m_chooser.addOption(DrivetrainConstants.kTopPathNoEngage, createPathCommand(DrivetrainConstants.kTopPathNoEngage));
+      m_chooser.addOption(DrivetrainConstants.kTopPath, createPathCommand(DrivetrainConstants.kTopPath));
+      m_chooser.addOption(DrivetrainConstants.kTopPathOneScore, createPathCommand(DrivetrainConstants.kTopPathOneScore));
+      m_chooser.addOption(DrivetrainConstants.kBottomPathOne, createPathCommand(DrivetrainConstants.kBottomPathOne));
+      SmartDashboard.putData(m_chooser);
+      addRequirements(drive, arm, intake);
     }
 
     Command createPathCommand(String pathName) {
@@ -62,8 +65,8 @@ public class PathPlannerDriveCommand extends CommandBase {
         eventMap.put("score_low", new PrintCommand("Passed score_low"));
         eventMap.put("intake", new PrintCommand("Passed intake"));
         eventMap.put("engage", new PrintCommand("Passed engage"));
-        eventMap.put("Turn 180", drive.turn180());
-        eventMap.put("BPath 2", getCommand());
+        eventMap.put("Turn 180", new PrintCommand("Passed Turn 180"));
+        eventMap.put("BPath 2", new PrintCommand("Bpath 2"));
     
         RamseteAutoBuilder autoBuilder =  new RamseteAutoBuilder(
           drive::getPose, 
@@ -108,6 +111,13 @@ public class PathPlannerDriveCommand extends CommandBase {
         config
       );
 
+      var jankTrajectory = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(0, 0, new Rotation2d(0)), 
+        List.of(new Translation2d(1, 0)), 
+        new Pose2d(0, 0, new Rotation2d(0)), 
+        config
+      );
+
       return new RamseteCommand(
         trajectory, 
         drive::getPose, 
@@ -119,6 +129,42 @@ public class PathPlannerDriveCommand extends CommandBase {
         new PIDController(DrivetrainConstants.kPDriveVel, DrivetrainConstants.kIDriveVel, DrivetrainConstants.KDDriveVel), 
         drive::tankDriveVolts, 
         drive
+      );
+    }
+
+    public Command jankCommand() {
+      return new SequentialCommandGroup(
+        new ParallelRaceGroup(
+          arm.setTargetPoint(ArmPresets.CUBE_HIGH_GOAL, ArmPresets.CONE_HIGH_GOAL),
+          new SequentialCommandGroup(
+            new WaitCommand(1),
+            intake.intakeRun(IntakeConstants.kIntakeOutSpeed)
+          ),
+          new WaitCommand(3)
+        ),
+        new ParallelRaceGroup(
+          arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT),
+          new WaitCommand(1)
+        ),
+        new ParallelRaceGroup(
+          drive.arcadeDrive(() -> { return 0.5; },  () -> { return 0.0; }),
+          new WaitCommand(2.5)
+        ),
+        arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT)
+      );
+    }
+
+    public Command bobCommand() {
+      return new SequentialCommandGroup(
+        new ParallelRaceGroup(
+          arm.setTargetPoint(ArmPresets.CUBE_LOW_GOAL, ArmPresets.CONE_LOW_GOAL),
+          new WaitCommand(3)
+        ),
+        new ParallelRaceGroup(
+          new WaitCommand(1),
+          intake.intakeRun(IntakeConstants.kIntakeOutSpeed)
+        ),
+        arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT)
       );
     }
 }

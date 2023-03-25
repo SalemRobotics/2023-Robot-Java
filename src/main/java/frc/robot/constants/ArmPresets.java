@@ -8,7 +8,7 @@ import org.opencv.core.Point;
 public enum ArmPresets {
     DEFAULT(-11.4, -0.5),
 
-    CUBE_LOW_GOAL(0, -0.5),
+    CUBE_LOW_GOAL(0, -1.5),
     CUBE_MID_GOAL(-7, -9.67),
     CUBE_HIGH_GOAL(-7.05, -36),
 

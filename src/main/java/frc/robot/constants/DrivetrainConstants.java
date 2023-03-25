@@ -11,18 +11,21 @@ public class DrivetrainConstants {
 
     public static final int kPidgeonPort=1;
 
+    public static final double kPositionFactor = (0.39898) * 0.112; // meters per 1 revolution / cpr / gear ratio
+    public static final double kVelocityFactor = kPositionFactor / 60.0;
+
     public static final double ksVolts=0.13422;
     public static final double kvVoltSecondsPerMeter=2.7125;
     public static final double kaVoltSecondsSquaredPerMeter=0.24729;
     public static final double trackWidthMeters=0.69215;
-    public static final double kMaxSpeedMetersPerSecond=1.0936;
-    public static final double kMaxAccelerationMetersPerSecondSquared=0.2;
+    public static final double kMaxSpeedMetersPerSecond=3.5;
+    public static final double kMaxAccelerationMetersPerSecondSquared=3.5;
     public static final double kGyroAlignError=0;
 
     public static final double kRamseteB=2;
     public static final double kRamseteZeta=0.7;
     public static final double kPDriveVel=0.1;
-    public static final double kIDriveVel=0;
+    public static final double kIDriveVel=0.1;
     public static final double KDDriveVel=0;
 
     public static final double kPTag=0;

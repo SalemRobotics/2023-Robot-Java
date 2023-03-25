@@ -18,10 +18,10 @@ import frc.robot.constants.LEDConstants;
  * Subsystem to control Addressable LED strips using Commands.
  */
 public class StatusLED extends SubsystemBase {
-    AddressableLED led = new AddressableLED(LEDConstants.ledPort);
-    AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(LEDConstants.ledLength);
+    final AddressableLED led = new AddressableLED(LEDConstants.ledPort);
+    final AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(LEDConstants.ledLength);
 
-    Timer timer = new Timer();
+    final Timer timer = new Timer();
 
     boolean isOn = false;
     

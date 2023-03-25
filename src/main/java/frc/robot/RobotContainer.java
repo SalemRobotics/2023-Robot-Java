@@ -26,6 +26,7 @@ public class RobotContainer {
   final Drivetrain drivetrain = new Drivetrain();
   final Arm arm = new Arm();
   final Intake intake = new Intake();
+
   final PathPlannerDriveCommand pathPlannerCommand = new PathPlannerDriveCommand(drivetrain, arm, intake);
 
   final StatusLED led = new StatusLED();
@@ -34,7 +35,7 @@ public class RobotContainer {
     configureBindings();
 
     drivetrain.setDefaultCommand(
-      drivetrain.arcadeDrive(driverController::getLeftX, driverController::getLeftY)
+      drivetrain.arcadeDrive(driverController::getLeftY, driverController::getRightX)
     );
 
     // Uses joysticks to control the rotation and extension of the arm.
@@ -112,7 +113,9 @@ public class RobotContainer {
   }
     
   public Command getAutonomousCommand() {
-    return pathPlannerCommand.getCommand();
+    return pathPlannerCommand.testCommand();
+    // return drivetrain.alignToCharger();
+    // return pathPlannerCommand.jankCommand();
   }
 
   public Command getDisabledCommand() {

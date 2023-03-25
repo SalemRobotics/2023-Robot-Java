@@ -41,7 +41,6 @@ public class Arm extends SubsystemBase {
     DigitalInput pivotSwitchMax = new DigitalInput(ArmConstants.kPivotSwitchMaxChannel);
     DigitalInput extensionSwitchMin = new DigitalInput(ArmConstants.kExtensionSwitchMinChannel);
     DigitalInput extensionSwitchMax = new DigitalInput(ArmConstants.kExtensionSwitchMaxChannel);
-
     
     // csv data
     List<String[]> datalines = new ArrayList<>();
@@ -113,8 +112,8 @@ public class Arm extends SubsystemBase {
                 double extError = extPreset - extensionEncoder.getPosition();
                 double extensionProportional = ArmConstants.kPExtension * extError;
                 extensionProportional = checkSpeedLimit(extensionProportional, ArmConstants.kExtensionMaxOutput);
-                extensionMotor.set(extensionProportional * Math.sin(mapPivotAngle(pivotEncoder.getPosition())/2 + 0.5));
-                // extensionMotor.set(extensionProportional);
+                // extensionMotor.set(extensionProportional * Math.sin(mapPivotAngle(pivotEncoder.getPosition())/2 + 0.5));
+                extensionMotor.set(extensionProportional);
             }
         );
     }
