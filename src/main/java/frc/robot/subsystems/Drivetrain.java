@@ -108,7 +108,7 @@ public class Drivetrain extends SubsystemBase {
     public Command alignToCharger() {
         return new PIDCommand(
             new PIDController(
-                DrivetrainConstants.kPCharger, DrivetrainConstants.kICharger, 0
+                DrivetrainConstants.kPCharger, DrivetrainConstants.kICharger, DrivetrainConstants.kDCharger
             ), 
             gyro::getRoll, 
             0, 
@@ -117,7 +117,7 @@ public class Drivetrain extends SubsystemBase {
                 rightFrontMotor.set(output);
             }, 
             this
-        );
+        ).until( () -> { return Math.abs(gyro.getRoll()) < 1.0; } );
     }
 
     public Command alignToApriltag() {

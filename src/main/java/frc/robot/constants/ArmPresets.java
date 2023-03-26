@@ -10,11 +10,11 @@ public enum ArmPresets {
 
     CUBE_LOW_GOAL(0, -1.5),
     CUBE_MID_GOAL(-7, -9.67),
-    CUBE_HIGH_GOAL(-7.05, -36),
+    CUBE_HIGH_GOAL(-7.55, -36),
 
     CONE_LOW_GOAL(-1.6, -10),
-    CONE_MID_GOAL(-7, -9.67),
-    CONE_HIGH_GOAL(-7.05, -36);
+    CONE_MID_GOAL(-7.75, -9.67),
+    CONE_HIGH_GOAL(-7.75, -38);
 
     public final Point value;
 

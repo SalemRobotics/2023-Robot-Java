@@ -18,8 +18,8 @@ public class DrivetrainConstants {
     public static final double kvVoltSecondsPerMeter=2.7125;
     public static final double kaVoltSecondsSquaredPerMeter=0.24729;
     public static final double trackWidthMeters=0.69215;
-    public static final double kMaxSpeedMetersPerSecond=3.5;
-    public static final double kMaxAccelerationMetersPerSecondSquared=3.5;
+    public static final double kMaxSpeedMetersPerSecond=3.0;
+    public static final double kMaxAccelerationMetersPerSecondSquared=3.0;
     public static final double kGyroAlignError=0;
 
     public static final double kRamseteB=2;
@@ -32,8 +32,9 @@ public class DrivetrainConstants {
     public static final double kITag=0;
     public static final double kDTag=0;
 
-    public static final double kPCharger=0;
+    public static final double kPCharger=0.006;
     public static final double kICharger=0;
+    public static final double kDCharger=0.0005; // maybe turn down lower
 
     public static final double kPTurn=0;
     public static final double kDTurn=0;
@@ -45,4 +46,8 @@ public class DrivetrainConstants {
     public static final String kTopPathOneScore = "Top Path Two Score";
     public static final String kTopPath = "Top Path";
     public static final String kBottomPathOne = "Bottom Path 1";
+    public static final String kChargerPath = "Charger";
+    public static final String kChargerMobilityPath = "Charger Mobility";
+    public static final String kHighTaxi3 = "High Taxi 3";
+    public static final String k2ScoreCube = "2 Score Cube";
 }

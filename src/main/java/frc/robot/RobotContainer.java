@@ -113,8 +113,8 @@ public class RobotContainer {
   }
     
   public Command getAutonomousCommand() {
-    return pathPlannerCommand.testCommand();
-    // return drivetrain.alignToCharger();
+    return pathPlannerCommand.getCommand();
+    // return drivetrain.alignToCharger().alongWith(arm.setTargetPoint(ArmPresets.CUBE_LOW_GOAL, ArmPresets.CUBE_LOW_GOAL));
     // return pathPlannerCommand.jankCommand();
   }
 

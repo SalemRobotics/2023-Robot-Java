@@ -2,7 +2,6 @@ package frc.robot.commands;
 
 import java.util.HashMap;
 import java.util.List;
-import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.auto.PIDConstants;
@@ -21,8 +20,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -51,22 +50,38 @@ public class PathPlannerDriveCommand extends CommandBase {
       m_chooser.addOption(DrivetrainConstants.kTopPath, createPathCommand(DrivetrainConstants.kTopPath));
       m_chooser.addOption(DrivetrainConstants.kTopPathOneScore, createPathCommand(DrivetrainConstants.kTopPathOneScore));
       m_chooser.addOption(DrivetrainConstants.kBottomPathOne, createPathCommand(DrivetrainConstants.kBottomPathOne));
+      m_chooser.addOption(DrivetrainConstants.kChargerPath, createPathCommand(DrivetrainConstants.kChargerPath));
+      m_chooser.addOption(DrivetrainConstants.kChargerMobilityPath, createPathCommand(DrivetrainConstants.kChargerMobilityPath));
+      m_chooser.addOption("High Taxi 1", jankCommand());
+      m_chooser.addOption(DrivetrainConstants.kHighTaxi3, createPathCommand(DrivetrainConstants.kHighTaxi3));
+      m_chooser.addOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
       SmartDashboard.putData(m_chooser);
       addRequirements(drive, arm, intake);
     }
 
     Command createPathCommand(String pathName) {
-        List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup(pathName, new PathConstraints(4, 2));
+        List<PathPlannerTrajectory> pathGroup = 
+        PathPlanner.loadPathGroup(
+          pathName, 
+          DrivetrainConstants.kMaxSpeedMetersPerSecond,
+          DrivetrainConstants.kMaxAccelerationMetersPerSecondSquared,
+          true          
+        );
     
         HashMap<String, Command> eventMap = new HashMap<>();
-        eventMap.put("score", new PrintCommand("Passed Score_default"));
-        eventMap.put("score_high", new PrintCommand("Passed score_high"));
-        eventMap.put("score_mid", new PrintCommand("Passed score_mid"));
-        eventMap.put("score_low", new PrintCommand("Passed score_low"));
-        eventMap.put("intake", new PrintCommand("Passed intake"));
-        eventMap.put("engage", new PrintCommand("Passed engage"));
-        eventMap.put("Turn 180", new PrintCommand("Passed Turn 180"));
-        eventMap.put("BPath 2", new PrintCommand("Bpath 2"));
+        eventMap.put("score_low", new ScoreCommand(arm, intake, ArmPresets.CUBE_LOW_GOAL, ArmPresets.CONE_LOW_GOAL));
+        eventMap.put("score_mid", new ScoreCommand(arm, intake, ArmPresets.CUBE_MID_GOAL, ArmPresets.CONE_MID_GOAL));
+        eventMap.put("score_high", new ScoreCommand(arm, intake, ArmPresets.CUBE_HIGH_GOAL, ArmPresets.CONE_HIGH_GOAL));
+        eventMap.put("set_cone_mode", new InstantCommand( () -> { Arm.isConeMode = true; } ));
+        eventMap.put("set_cube_mode", new InstantCommand( () -> { Arm.isConeMode = false; } ));
+        eventMap.put("arm_default", arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT));
+        eventMap.put("arm_low", arm.setTargetPoint(ArmPresets.CUBE_LOW_GOAL, ArmPresets.CONE_LOW_GOAL));
+        eventMap.put("arm_mid", arm.setTargetPoint(ArmPresets.CUBE_MID_GOAL, ArmPresets.CONE_MID_GOAL));
+        eventMap.put("arm_high", arm.setTargetPoint(ArmPresets.CUBE_HIGH_GOAL, ArmPresets.CONE_HIGH_GOAL));
+        eventMap.put("intake", intake.intakeRun(IntakeConstants.kIntakeInSpeed));
+        eventMap.put("outtake", intake.intakeRun(IntakeConstants.kIntakeOutSpeed));
+        eventMap.put("stop_intake", intake.intakeRun(0));
+        eventMap.put("balance", drive.alignToCharger());
     
         RamseteAutoBuilder autoBuilder =  new RamseteAutoBuilder(
           drive::getPose, 
@@ -149,20 +164,6 @@ public class PathPlannerDriveCommand extends CommandBase {
         new ParallelRaceGroup(
           drive.arcadeDrive(() -> { return 0.5; },  () -> { return 0.0; }),
           new WaitCommand(2.5)
-        ),
-        arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT)
-      );
-    }
-
-    public Command bobCommand() {
-      return new SequentialCommandGroup(
-        new ParallelRaceGroup(
-          arm.setTargetPoint(ArmPresets.CUBE_LOW_GOAL, ArmPresets.CONE_LOW_GOAL),
-          new WaitCommand(3)
-        ),
-        new ParallelRaceGroup(
-          new WaitCommand(1),
-          intake.intakeRun(IntakeConstants.kIntakeOutSpeed)
         ),
         arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT)
       );
