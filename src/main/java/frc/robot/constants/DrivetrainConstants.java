@@ -18,8 +18,8 @@ public class DrivetrainConstants {
     public static final double kvVoltSecondsPerMeter=2.7125;
     public static final double kaVoltSecondsSquaredPerMeter=0.24729;
     public static final double trackWidthMeters=0.69215;
-    public static final double kMaxSpeedMetersPerSecond=3.0;
-    public static final double kMaxAccelerationMetersPerSecondSquared=3.0;
+    public static final double kMaxSpeedMetersPerSecond=4.0;
+    public static final double kMaxAccelerationMetersPerSecondSquared=4.0;
     public static final double kGyroAlignError=0;
 
     public static final double kRamseteB=2;
