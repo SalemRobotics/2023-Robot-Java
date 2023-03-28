@@ -6,25 +6,14 @@ import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.RamseteAutoBuilder;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.constants.ArmPresets;
 import frc.robot.constants.DrivetrainConstants;
 import frc.robot.constants.IntakeConstants;
@@ -43,16 +32,8 @@ public class PathPlannerDriveCommand extends CommandBase {
       this.drive=drive;
       this.arm=arm;
       this.intake=intake;
-      m_chooser.setDefaultOption(DrivetrainConstants.kBottomPath, createPathCommand(DrivetrainConstants.kBottomPath));
-      m_chooser.addOption(DrivetrainConstants.kBottomPathOneScore, createPathCommand(DrivetrainConstants.kBottomPathOneScore));
-      m_chooser.addOption(DrivetrainConstants.kBottomPathNoEngage, createPathCommand(DrivetrainConstants.kBottomPathNoEngage));
-      m_chooser.addOption(DrivetrainConstants.kTopPathNoEngage, createPathCommand(DrivetrainConstants.kTopPathNoEngage));
-      m_chooser.addOption(DrivetrainConstants.kTopPath, createPathCommand(DrivetrainConstants.kTopPath));
-      m_chooser.addOption(DrivetrainConstants.kTopPathOneScore, createPathCommand(DrivetrainConstants.kTopPathOneScore));
-      m_chooser.addOption(DrivetrainConstants.kBottomPathOne, createPathCommand(DrivetrainConstants.kBottomPathOne));
       m_chooser.addOption(DrivetrainConstants.kChargerPath, createPathCommand(DrivetrainConstants.kChargerPath));
       m_chooser.addOption(DrivetrainConstants.kChargerMobilityPath, createPathCommand(DrivetrainConstants.kChargerMobilityPath));
-      m_chooser.addOption("High Taxi 1", jankCommand());
       m_chooser.addOption(DrivetrainConstants.kHighTaxi3, createPathCommand(DrivetrainConstants.kHighTaxi3));
       m_chooser.addOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
       SmartDashboard.putData(m_chooser);
@@ -65,7 +46,7 @@ public class PathPlannerDriveCommand extends CommandBase {
           pathName, 
           DrivetrainConstants.kMaxSpeedMetersPerSecond,
           DrivetrainConstants.kMaxAccelerationMetersPerSecondSquared,
-          true          
+          true
         );
     
         HashMap<String, Command> eventMap = new HashMap<>();
@@ -102,70 +83,5 @@ public class PathPlannerDriveCommand extends CommandBase {
 
     public Command getCommand() {
         return m_chooser.getSelected();
-    }
-
-    public Command testCommand() {
-      var feedForward = new SimpleMotorFeedforward(
-        DrivetrainConstants.ksVolts, 
-        DrivetrainConstants.kvVoltSecondsPerMeter, 
-        DrivetrainConstants.kaVoltSecondsSquaredPerMeter
-      );
-
-      var voltageConstraint = new DifferentialDriveVoltageConstraint(feedForward, driveKinematics, 10);
-      
-      var config = new TrajectoryConfig(
-        DrivetrainConstants.kMaxSpeedMetersPerSecond, 
-        DrivetrainConstants.kMaxAccelerationMetersPerSecondSquared)
-      .setKinematics(driveKinematics)
-      .addConstraint(voltageConstraint);
-
-      var trajectory = TrajectoryGenerator.generateTrajectory(
-        new Pose2d(0, 0, new Rotation2d(0)), 
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)), 
-        new Pose2d(3, 0, new Rotation2d(0)), 
-        config
-      );
-
-      var jankTrajectory = TrajectoryGenerator.generateTrajectory(
-        new Pose2d(0, 0, new Rotation2d(0)), 
-        List.of(new Translation2d(1, 0)), 
-        new Pose2d(0, 0, new Rotation2d(0)), 
-        config
-      );
-
-      return new RamseteCommand(
-        trajectory, 
-        drive::getPose, 
-        new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta), 
-        feedForward, 
-        driveKinematics, 
-        drive::getWheelSpeeds, 
-        new PIDController(DrivetrainConstants.kPDriveVel, DrivetrainConstants.kIDriveVel, DrivetrainConstants.KDDriveVel), 
-        new PIDController(DrivetrainConstants.kPDriveVel, DrivetrainConstants.kIDriveVel, DrivetrainConstants.KDDriveVel), 
-        drive::tankDriveVolts, 
-        drive
-      );
-    }
-
-    public Command jankCommand() {
-      return new SequentialCommandGroup(
-        new ParallelRaceGroup(
-          arm.setTargetPoint(ArmPresets.CUBE_HIGH_GOAL, ArmPresets.CONE_HIGH_GOAL),
-          new SequentialCommandGroup(
-            new WaitCommand(1),
-            intake.intakeRun(IntakeConstants.kIntakeOutSpeed)
-          ),
-          new WaitCommand(3)
-        ),
-        new ParallelRaceGroup(
-          arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT),
-          new WaitCommand(1)
-        ),
-        new ParallelRaceGroup(
-          drive.arcadeDrive(() -> { return 0.5; },  () -> { return 0.0; }),
-          new WaitCommand(2.5)
-        ),
-        arm.setTargetPoint(ArmPresets.DEFAULT, ArmPresets.DEFAULT)
-      );
     }
 }
