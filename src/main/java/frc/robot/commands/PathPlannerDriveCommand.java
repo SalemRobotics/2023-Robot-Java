@@ -32,6 +32,7 @@ public class PathPlannerDriveCommand extends CommandBase {
       this.drive=drive;
       this.arm=arm;
       this.intake=intake;
+      m_chooser.setDefaultOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
       m_chooser.addOption(DrivetrainConstants.kChargerPath, createPathCommand(DrivetrainConstants.kChargerPath));
       m_chooser.addOption(DrivetrainConstants.kChargerMobilityPath, createPathCommand(DrivetrainConstants.kChargerMobilityPath));
       m_chooser.addOption(DrivetrainConstants.kHighTaxi3, createPathCommand(DrivetrainConstants.kHighTaxi3));
