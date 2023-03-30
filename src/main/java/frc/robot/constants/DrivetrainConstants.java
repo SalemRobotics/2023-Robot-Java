@@ -18,8 +18,8 @@ public class DrivetrainConstants {
     public static final double kvVoltSecondsPerMeter=2.7125;
     public static final double kaVoltSecondsSquaredPerMeter=0.24729;
     public static final double trackWidthMeters=0.69215;
-    public static final double kMaxSpeedMetersPerSecond=4.0;
-    public static final double kMaxAccelerationMetersPerSecondSquared=4.0;
+    public static final double kMaxSpeedMetersPerSecond=3.0;
+    public static final double kMaxAccelerationMetersPerSecondSquared=3.0;
     public static final double kGyroAlignError=0;
 
     public static final double kRamseteB=2;
@@ -39,15 +39,10 @@ public class DrivetrainConstants {
     public static final double kPTurn=0;
     public static final double kDTurn=0;
 
-    public static final String kBottomPathNoEngage = "Bottom Path No Engage";
-    public static final String kBottomPathOneScore = "Bottom Path Two Score";
-    public static final String kBottomPath = "Bottom Path";
-    public static final String kTopPathNoEngage = "Top Path No Engage";
-    public static final String kTopPathOneScore = "Top Path Two Score";
-    public static final String kTopPath = "Top Path";
-    public static final String kBottomPathOne = "Bottom Path 1";
-    public static final String kChargerPath = "Charger";
     public static final String kChargerMobilityPath = "Charger Mobility";
     public static final String kHighTaxi3 = "High Taxi 3";
     public static final String k2ScoreCube = "2 Score Cube";
+    public static final String k2ScoreCubeEngage = "2 Score Cube And Engage";
+    public static final String k3ScoreCube = "3 Score Cube";
+    public static final String k3ScoreCubeEngage = "2.5 Score Cube Engage";
 }

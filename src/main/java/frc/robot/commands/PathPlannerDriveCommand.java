@@ -32,11 +32,13 @@ public class PathPlannerDriveCommand extends CommandBase {
       this.drive=drive;
       this.arm=arm;
       this.intake=intake;
-      m_chooser.setDefaultOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
-      m_chooser.addOption(DrivetrainConstants.kChargerPath, createPathCommand(DrivetrainConstants.kChargerPath));
       m_chooser.addOption(DrivetrainConstants.kChargerMobilityPath, createPathCommand(DrivetrainConstants.kChargerMobilityPath));
       m_chooser.addOption(DrivetrainConstants.kHighTaxi3, createPathCommand(DrivetrainConstants.kHighTaxi3));
       m_chooser.addOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
+      m_chooser.addOption(DrivetrainConstants.k2ScoreCubeEngage, createPathCommand(DrivetrainConstants.k2ScoreCubeEngage));
+      m_chooser.addOption(DrivetrainConstants.k3ScoreCube, createPathCommand(DrivetrainConstants.k3ScoreCube));
+      m_chooser.addOption(DrivetrainConstants.k3ScoreCubeEngage, createPathCommand(DrivetrainConstants.k3ScoreCubeEngage));
+      m_chooser.setDefaultOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
       SmartDashboard.putData(m_chooser);
       addRequirements(drive, arm, intake);
     }
@@ -47,7 +49,7 @@ public class PathPlannerDriveCommand extends CommandBase {
           pathName, 
           DrivetrainConstants.kMaxSpeedMetersPerSecond,
           DrivetrainConstants.kMaxAccelerationMetersPerSecondSquared,
-          true
+          true          
         );
     
         HashMap<String, Command> eventMap = new HashMap<>();
@@ -60,12 +62,12 @@ public class PathPlannerDriveCommand extends CommandBase {
         eventMap.put("arm_low", arm.setTargetPoint(ArmPresets.CUBE_LOW_GOAL, ArmPresets.CONE_LOW_GOAL));
         eventMap.put("arm_mid", arm.setTargetPoint(ArmPresets.CUBE_MID_GOAL, ArmPresets.CONE_MID_GOAL));
         eventMap.put("arm_high", arm.setTargetPoint(ArmPresets.CUBE_HIGH_GOAL, ArmPresets.CONE_HIGH_GOAL));
-        eventMap.put("intake", intake.intakeRun(IntakeConstants.kIntakeInSpeed));
-        eventMap.put("outtake", intake.intakeRun(IntakeConstants.kIntakeOutSpeed));
-        eventMap.put("stop_intake", intake.intakeRun(0));
+        eventMap.put("intake_in", intake.intakeRun(IntakeConstants.kIntakeInSpeed));
+        eventMap.put("intake_out", intake.intakeRun(-1.0));
+        eventMap.put("intake_stop", intake.intakeRun(0));
         eventMap.put("balance", drive.alignToCharger());
     
-        RamseteAutoBuilder autoBuilder =  new RamseteAutoBuilder(
+        RamseteAutoBuilder autoBuilder = new RamseteAutoBuilder(
           drive::getPose, 
           drive::resetOdometry, 
           new RamseteController(DrivetrainConstants.kRamseteB, DrivetrainConstants.kRamseteZeta), 
