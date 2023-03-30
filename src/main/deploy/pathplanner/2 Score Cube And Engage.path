@@ -117,7 +117,7 @@
       "isReversal": true,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": false,
+      "isStopPoint": true,
       "stopEvent": {
         "names": [
           "score_mid",
@@ -156,5 +156,19 @@
   "maxVelocity": null,
   "maxAcceleration": 9.0,
   "isReversed": null,
-  "markers": []
+  "markers": [
+    {
+      "position": 1.0909090909090284,
+      "names": [
+        "intake_low",
+        "intake_in"
+      ]
+    },
+    {
+      "position": 2.109090909090801,
+      "names": [
+        "intake_stop"
+      ]
+    }
+  ]
 }

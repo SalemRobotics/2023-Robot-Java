@@ -32,13 +32,22 @@ public class PathPlannerDriveCommand extends CommandBase {
       this.drive=drive;
       this.arm=arm;
       this.intake=intake;
+      m_chooser.setDefaultOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
       m_chooser.addOption(DrivetrainConstants.kChargerMobilityPath, createPathCommand(DrivetrainConstants.kChargerMobilityPath));
-      m_chooser.addOption(DrivetrainConstants.kHighTaxi3, createPathCommand(DrivetrainConstants.kHighTaxi3));
       m_chooser.addOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
       m_chooser.addOption(DrivetrainConstants.k2ScoreCubeEngage, createPathCommand(DrivetrainConstants.k2ScoreCubeEngage));
       m_chooser.addOption(DrivetrainConstants.k3ScoreCube, createPathCommand(DrivetrainConstants.k3ScoreCube));
       m_chooser.addOption(DrivetrainConstants.k3ScoreCubeEngage, createPathCommand(DrivetrainConstants.k3ScoreCubeEngage));
-      m_chooser.setDefaultOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
+      m_chooser.addOption(DrivetrainConstants.k25ScoreCube, createPathCommand(DrivetrainConstants.k25ScoreCube));
+      m_chooser.addOption(DrivetrainConstants.k25ScoreCubeEngage, createPathCommand(DrivetrainConstants.k25ScoreCubeEngage));
+      m_chooser.addOption(DrivetrainConstants.k1ScoreHigh, createPathCommand(DrivetrainConstants.k1ScoreHigh));
+      m_chooser.addOption(DrivetrainConstants.k1ScoreLow, createPathCommand(DrivetrainConstants.k1ScoreLow));
+      m_chooser.addOption(DrivetrainConstants.kBump1ScoreMobility, createPathCommand(DrivetrainConstants.kBump1ScoreMobility));
+      m_chooser.addOption(DrivetrainConstants.kBump2Score, createPathCommand(DrivetrainConstants.kBump2Score));
+      m_chooser.addOption(DrivetrainConstants.kBump3Score, createPathCommand(DrivetrainConstants.kBump3Score));
+      m_chooser.addOption(DrivetrainConstants.kCharger1ScoreMobility, createPathCommand(DrivetrainConstants.kCharger1ScoreMobility));
+      m_chooser.addOption(DrivetrainConstants.kFlat1Score, createPathCommand(DrivetrainConstants.kFlat1Score));
+
       SmartDashboard.putData(m_chooser);
       addRequirements(drive, arm, intake);
     }
