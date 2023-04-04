@@ -23,7 +23,7 @@ public class ArmConstants {
     public static final double kPivotMaxOutput = 0.18;
 
     public static final double kPExtension = 0.11;
-    public static final double kExtensionMaxOutput = 0.6;
+    public static final double kExtensionMaxOutput = 0.9;
     
     public static final double kMaxHeight = 77.5; // inches
     public static final double kArmRetractedLength = 42.75; // inches

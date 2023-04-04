@@ -19,8 +19,8 @@ public class DrivetrainConstants {
     public static final double kaVoltSecondsSquaredPerMeter=0.24729;
     public static final double trackWidthMeters=0.69215;
     public static final double kMaxSpeedMetersPerSecond=3.0;
-    public static final double kMaxAccelerationMetersPerSecondSquared=3.0;
-    public static final double kGyroAlignError=0;
+    public static final double kMaxAccelerationMetersPerSecondSquared=5.0;
+    public static final double kGyroAlignError=2.5;
 
     public static final double kRamseteB=2;
     public static final double kRamseteZeta=0.7;
@@ -28,21 +28,31 @@ public class DrivetrainConstants {
     public static final double kIDriveVel=0.1;
     public static final double KDDriveVel=0;
 
-    public static final double kPTag=0;
-    public static final double kITag=0;
-    public static final double kDTag=0;
-
+    
     public static final double kPCharger=0.006;
     public static final double kICharger=0;
     public static final double kDCharger=0.0005; // maybe turn down lower
 
+    public static final double kPTag=0;
+    public static final double kITag=0;
+    public static final double kDTag=0;
+
     public static final double kPTurn=0;
     public static final double kDTurn=0;
 
+    public static final String kCharger = "Charger";
     public static final String kChargerMobilityPath = "Charger Mobility";
-    public static final String kHighTaxi3 = "High Taxi 3";
     public static final String k2ScoreCube = "2 Score Cube";
     public static final String k2ScoreCubeEngage = "2 Score Cube And Engage";
+    public static final String k25ScoreCube = "2.5 Score Cube";
+    public static final String k25ScoreCubeEngage = "2.5 Score Cube Engage";
     public static final String k3ScoreCube = "3 Score Cube";
-    public static final String k3ScoreCubeEngage = "2.5 Score Cube Engage";
+    public static final String k3ScoreCubeEngage = "3 Score Cube and Engage";
+    public static final String k1ScoreLow = "1 Score Low(Usable Anywhere)";
+    public static final String k1ScoreHigh = "1 Score High(Usable Anywhere)";
+    public static final String kBump1ScoreMobility = "Bump 1 Score + Mobility";
+    public static final String kBump2Score = "Bump 2 Score";
+    public static final String kBump3Score = "Bump 3 Score (do not use)";
+    public static final String kCharger1ScoreMobility = "Charger 1 Score + Mobility";
+    public static final String kFlat1ScoreMobility = "Flat Side 1 Score + Mobility";
 }

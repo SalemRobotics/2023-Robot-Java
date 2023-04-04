@@ -33,6 +33,7 @@ public class PathPlannerDriveCommand extends CommandBase {
       this.arm=arm;
       this.intake=intake;
       m_chooser.setDefaultOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
+      m_chooser.addOption(DrivetrainConstants.kCharger, createPathCommand(DrivetrainConstants.kCharger));
       m_chooser.addOption(DrivetrainConstants.kChargerMobilityPath, createPathCommand(DrivetrainConstants.kChargerMobilityPath));
       m_chooser.addOption(DrivetrainConstants.k2ScoreCube, createPathCommand(DrivetrainConstants.k2ScoreCube));
       m_chooser.addOption(DrivetrainConstants.k2ScoreCubeEngage, createPathCommand(DrivetrainConstants.k2ScoreCubeEngage));
@@ -46,7 +47,7 @@ public class PathPlannerDriveCommand extends CommandBase {
       m_chooser.addOption(DrivetrainConstants.kBump2Score, createPathCommand(DrivetrainConstants.kBump2Score));
       m_chooser.addOption(DrivetrainConstants.kBump3Score, createPathCommand(DrivetrainConstants.kBump3Score));
       m_chooser.addOption(DrivetrainConstants.kCharger1ScoreMobility, createPathCommand(DrivetrainConstants.kCharger1ScoreMobility));
-      m_chooser.addOption(DrivetrainConstants.kFlat1Score, createPathCommand(DrivetrainConstants.kFlat1Score));
+      m_chooser.addOption(DrivetrainConstants.kFlat1ScoreMobility, createPathCommand(DrivetrainConstants.kFlat1ScoreMobility));
 
       SmartDashboard.putData(m_chooser);
       addRequirements(drive, arm, intake);
@@ -58,7 +59,7 @@ public class PathPlannerDriveCommand extends CommandBase {
           pathName, 
           DrivetrainConstants.kMaxSpeedMetersPerSecond,
           DrivetrainConstants.kMaxAccelerationMetersPerSecondSquared,
-          true          
+          true
         );
     
         HashMap<String, Command> eventMap = new HashMap<>();
@@ -75,6 +76,7 @@ public class PathPlannerDriveCommand extends CommandBase {
         eventMap.put("intake_out", intake.intakeRun(-1.0));
         eventMap.put("intake_stop", intake.intakeRun(0));
         eventMap.put("balance", drive.alignToCharger());
+        eventMap.put("balance_taxi", drive.taxiOverCharger());
     
         RamseteAutoBuilder autoBuilder = new RamseteAutoBuilder(
           drive::getPose, 

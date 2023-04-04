@@ -21,7 +21,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.LimelightHelpers;
 import frc.robot.constants.DrivetrainConstants;
 
@@ -54,6 +57,8 @@ public class Drivetrain extends SubsystemBase {
 
     boolean temp = true;
 
+    double pitch;
+
     public Drivetrain() {
         leftTopMotor.follow(leftFrontMotor);
         leftBackMotor.follow(leftFrontMotor);
@@ -77,6 +82,8 @@ public class Drivetrain extends SubsystemBase {
         odometry.update(getRotation2d(), -rightEncoder.getPosition(), -leftEncoder.getPosition());
         updateShuffleboard();
 
+        pitch = gyro.getRoll() + DrivetrainConstants.kGyroAlignError;
+
         if (Timer.getMatchTime() <= 15 && DriverStation.isTeleop() && temp) {
             leftTopMotor.setIdleMode(IdleMode.kBrake);
             rightFrontMotor.setIdleMode(IdleMode.kBrake);
@@ -91,13 +98,24 @@ public class Drivetrain extends SubsystemBase {
         /** Gyro **/
         SmartDashboard.putNumber("Yaw", -gyro.getYaw());
         // pitch and roll are swapped
-        SmartDashboard.putNumber("Pitch", gyro.getRoll()); 
+        SmartDashboard.putNumber("Pitch", pitch); 
         SmartDashboard.putNumber("Roll", gyro.getPitch());
 
+        // Encoder
         SmartDashboard.putNumber("Left encoder position", -leftEncoder.getPosition());
         SmartDashboard.putNumber("Right encoder position", -rightEncoder.getPosition());
         SmartDashboard.putNumber("Left encoder velocity", -leftEncoder.getVelocity());
         SmartDashboard.putNumber("Right encoder velocity", -rightEncoder.getVelocity());
+
+        // Left side motor current
+        SmartDashboard.putNumber("LeftFrontMotor Current", leftFrontMotor.getOutputCurrent());
+        SmartDashboard.putNumber("LeftTopMotor Current", leftTopMotor.getOutputCurrent());
+        SmartDashboard.putNumber("LeftBackMotor Current", leftBackMotor.getOutputCurrent());
+
+        // Right side motor current
+        SmartDashboard.putNumber("RightFrontMotor Current", rightFrontMotor.getOutputCurrent());
+        SmartDashboard.putNumber("RightTopMotor Current", rightTopMotor.getOutputCurrent());
+        SmartDashboard.putNumber("RightBackMotor Current", rightBackMotor.getOutputCurrent());
     }
     
     /**
@@ -106,18 +124,56 @@ public class Drivetrain extends SubsystemBase {
      * @return Runnable command.
      */
     public Command alignToCharger() {
-        return new PIDCommand(
-            new PIDController(
-                DrivetrainConstants.kPCharger, DrivetrainConstants.kICharger, DrivetrainConstants.kDCharger
-            ), 
-            gyro::getRoll, 
-            0, 
-            output -> {
-                leftFrontMotor.set(output);
-                rightFrontMotor.set(output);
-            }, 
-            this
-        ).until( () -> { return Math.abs(gyro.getRoll()) < 1.0; } );
+        return new ParallelRaceGroup(
+            new PIDCommand(
+                new PIDController(
+                    DrivetrainConstants.kPCharger, DrivetrainConstants.kICharger, DrivetrainConstants.kDCharger
+                ), 
+                () -> { return pitch; }, 
+                0, 
+                output -> {
+                    leftFrontMotor.set(output);
+                    rightFrontMotor.set(output);
+                }, 
+                this
+            ),
+            new WaitCommand(5)
+        );
+    }
+
+    public Command taxiOverCharger() {
+        return new SequentialCommandGroup(
+            run(
+                () -> {
+                    drive.arcadeDrive(0.6, 0);
+                }
+            ).until( () -> { return pitch > 8.0; } ),
+            run(
+                () -> {
+                    drive.arcadeDrive(0.5, 0);
+                }
+            ).until( () -> { return Math.abs(pitch) < 3.0; } ),
+            new ParallelRaceGroup(
+                run(
+                    () -> {
+                        drive.arcadeDrive(0.5, 0);
+                    }
+                ),
+                new WaitCommand(0.75)
+            ),
+            run(
+                () -> {
+                    drive.arcadeDrive(-0.5, 0);
+                    
+                }
+            ).until( () -> { return pitch > 8.0; } ),
+            run(
+                () -> {
+                    drive.arcadeDrive(-0.5, 0);
+                }
+            ).until( () -> { return Math.abs(pitch) < 6.0; } ),
+            alignToCharger()
+        );
     }
 
     public Command alignToApriltag() {
@@ -128,20 +184,6 @@ public class Drivetrain extends SubsystemBase {
             ), 
             gyro::getYaw, 
             targetAngle, 
-            output -> {
-                drive.arcadeDrive(0, -output);
-            }, 
-            this
-        );
-    }
-
-    public Command turn180() {
-        return new PIDCommand(
-            new PIDController(
-                DrivetrainConstants.kPTurn, 0, DrivetrainConstants.kDTurn
-            ), 
-            gyro::getYaw, 
-            180, 
             output -> {
                 drive.arcadeDrive(0, -output);
             }, 

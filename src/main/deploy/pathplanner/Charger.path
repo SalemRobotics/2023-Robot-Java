@@ -2,17 +2,17 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 1.8983607197983627,
-        "y": 2.75
+        "x": 1.853443516863282,
+        "y": 2.7704637832078522
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.129796713435609,
-        "y": 2.75
+        "x": 2.8534435168632815,
+        "y": 2.7704637832078522
       },
       "holonomicAngle": 0,
       "isReversal": false,
-      "velOverride": 2.5,
+      "velOverride": null,
       "isLocked": false,
       "isStopPoint": false,
       "stopEvent": {
@@ -22,27 +22,27 @@
         ],
         "executionBehavior": "sequential",
         "waitBehavior": "deadline",
-        "waitTime": 2.0
+        "waitTime": 1.5
       }
     },
     {
       "anchorPoint": {
-        "x": 2.3675501982832956,
-        "y": 2.74190230090674
+        "x": 4.0,
+        "y": 2.77
       },
       "prevControl": {
-        "x": 2.1388600822593062,
-        "y": 2.74190230090674
+        "x": 3.0,
+        "y": 2.77
       },
       "nextControl": null,
       "holonomicAngle": 0,
       "isReversal": false,
-      "velOverride": 2.5,
+      "velOverride": null,
       "isLocked": false,
       "isStopPoint": false,
       "stopEvent": {
         "names": [
-          "balance_taxi",
+          "balance",
           "arm_low"
         ],
         "executionBehavior": "parallel",
@@ -51,8 +51,12 @@
       }
     }
   ],
-  "maxVelocity": 2.0,
-  "maxAcceleration": 2.0,
-  "isReversed": true,
-  "markers": []
+  "markers": [
+    {
+      "position": 0.15,
+      "names": [
+        "arm_low"
+      ]
+    }
+  ]
 }

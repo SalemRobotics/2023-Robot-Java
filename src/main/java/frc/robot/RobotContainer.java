@@ -4,6 +4,7 @@
 
 package frc.robot;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -49,24 +50,26 @@ public class RobotContainer {
     // );
 
     led.setDefaultCommand(led.solidTeamColor());
+
+    CameraServer.startAutomaticCapture();
   }
   
   private void configureBindings() {
 
     /* Driver Controller */
       // Set Cube mode and blink purple
-    new JoystickButton(driverController, Button.kRightBumper.value)
-    .toggleOnTrue(
-      new InstantCommand(() -> { Arm.isConeMode = false; })
-      .alongWith(led.gamepieceSolidColor())
-    );
+    // new JoystickButton(driverController, Button.kRightBumper.value)
+    // .toggleOnTrue(
+    //   new InstantCommand(() -> { Arm.isConeMode = false; })
+    //   .alongWith(led.gamepieceSolidColor())
+    // );
 
-      // Set Cone mode and blink yellow
-    new JoystickButton(driverController, Button.kLeftBumper.value)
-    .toggleOnTrue(
-      new InstantCommand(() -> { Arm.isConeMode = true; })
-      .alongWith(led.gamepieceSolidColor())
-    );
+    //   // Set Cone mode and blink yellow
+    // new JoystickButton(driverController, Button.kLeftBumper.value)
+    // .toggleOnTrue(
+    //   new InstantCommand(() -> { Arm.isConeMode = true; })
+    //   .alongWith(led.gamepieceSolidColor())
+    // );
 
     /* Operator Controller */
       // Hold...
@@ -114,6 +117,7 @@ public class RobotContainer {
     
   public Command getAutonomousCommand() {
     return pathPlannerCommand.getCommand();
+    // return drivetrain.taxiOverCharger();
   }
 
   public Command getDisabledCommand() {

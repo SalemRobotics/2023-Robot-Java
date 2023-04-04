@@ -18,10 +18,10 @@ public class ScoreCommand extends ParallelRaceGroup {
         addCommands(
             this.arm.setTargetPoint(cubePreset, conePreset),
             new SequentialCommandGroup(
-                new WaitCommand(1),
+                new WaitCommand(1.0),
                 this.intake.intakeRun(IntakeConstants.kIntakeOutSpeed)
             ),
-            new WaitCommand(2)
+            new WaitCommand(1.5)
         );
     }
 }

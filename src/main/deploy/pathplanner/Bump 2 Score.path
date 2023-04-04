@@ -2,13 +2,13 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 1.8755223835233994,
-        "y": 0.47960506177422585
+        "x": 1.8755223835234,
+        "y": 1.027725132373342
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.875522383523398,
-        "y": 0.47960506177422585
+        "x": 5.381207001730243,
+        "y": 1.0505634686483054
       },
       "holonomicAngle": 0,
       "isReversal": false,
@@ -21,8 +21,8 @@
           "arm_default"
         ],
         "executionBehavior": "sequential",
-        "waitBehavior": "after",
-        "waitTime": 0
+        "waitBehavior": "deadline",
+        "waitTime": 1.5
       }
     },
     {
@@ -116,26 +116,29 @@
       "isLocked": false,
       "isStopPoint": false,
       "stopEvent": {
-        "names": [],
-        "executionBehavior": "parallel",
+        "names": [
+          "score_low",
+          "arm_default"
+        ],
+        "executionBehavior": "sequential",
         "waitBehavior": "none",
-        "waitTime": 0
+        "waitTime": 1.5
       }
     }
   ],
-  "maxVelocity": null,
-  "maxAcceleration": 7.0,
-  "isReversed": null,
+  "maxVelocity": 3.0,
+  "maxAcceleration": 5.0,
+  "isReversed": true,
   "markers": [
     {
-      "position": 1.3963636363636454,
+      "position": 1.0,
       "names": [
         "arm_low",
         "intake_in"
       ]
     },
     {
-      "position": 2.094545454545336,
+      "position": 2.2981818181817286,
       "names": [
         "intake_stop"
       ]

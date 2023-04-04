@@ -22,7 +22,32 @@
         ],
         "executionBehavior": "sequential",
         "waitBehavior": "deadline",
-        "waitTime": 2.0
+        "waitTime": 1.5
+      }
+    },
+    {
+      "anchorPoint": {
+        "x": 5.415464506142688,
+        "y": 5.1843023344166355
+      },
+      "prevControl": {
+        "x": 4.399158541906827,
+        "y": 4.864565626567151
+      },
+      "nextControl": {
+        "x": 6.323757995603084,
+        "y": 5.470057589527771
+      },
+      "holonomicAngle": 0,
+      "isReversal": false,
+      "velOverride": null,
+      "isLocked": false,
+      "isStopPoint": false,
+      "stopEvent": {
+        "names": [],
+        "executionBehavior": "parallel",
+        "waitBehavior": "none",
+        "waitTime": 0
       }
     },
     {
@@ -52,16 +77,16 @@
     },
     {
       "anchorPoint": {
-        "x": 7.06,
-        "y": 4.6
+        "x": 7.128339726764924,
+        "y": 4.544828918717667
       },
       "prevControl": {
-        "x": 7.350618605158246,
-        "y": 5.3984680553456785
+        "x": 7.405716351830959,
+        "y": 5.0569088419165
       },
       "nextControl": {
-        "x": 6.531109392909144,
-        "y": 3.146884999656229
+        "x": 6.831441355190402,
+        "y": 3.9967088481185504
       },
       "holonomicAngle": 0,
       "isReversal": false,
@@ -77,16 +102,16 @@
     },
     {
       "anchorPoint": {
-        "x": 4.433416046319272,
-        "y": 4.693278104504927
+        "x": 4.387739373769346,
+        "y": 5.047272316766856
       },
       "prevControl": {
-        "x": 5.541075355654984,
-        "y": 4.499152246167741
+        "x": 5.3280022439439785,
+        "y": 5.237325450100026
       },
       "nextControl": {
-        "x": 3.4344549784529628,
-        "y": 4.8683537555742795
+        "x": 3.3143375688460783,
+        "y": 4.830308122154706
       },
       "holonomicAngle": 0,
       "isReversal": false,
@@ -120,12 +145,12 @@
       "isStopPoint": true,
       "stopEvent": {
         "names": [
-          "score_mid",
+          "score_low",
           "arm_default"
         ],
         "executionBehavior": "sequential",
-        "waitBehavior": "none",
-        "waitTime": 0
+        "waitBehavior": "deadline",
+        "waitTime": 1.5
       }
     },
     {
@@ -145,6 +170,7 @@
       "isStopPoint": false,
       "stopEvent": {
         "names": [
+          "arm_low",
           "balance"
         ],
         "executionBehavior": "parallel",
@@ -153,21 +179,34 @@
       }
     }
   ],
-  "maxVelocity": null,
-  "maxAcceleration": 9.0,
-  "isReversed": null,
+  "maxVelocity": 3.5,
+  "maxAcceleration": 6.0,
+  "isReversed": true,
   "markers": [
     {
-      "position": 1.0909090909090284,
+      "position": 2.0,
       "names": [
-        "intake_low",
+        "arm_low",
         "intake_in"
       ]
     },
     {
-      "position": 2.109090909090801,
+      "position": 3.4472727272727055,
       "names": [
-        "intake_stop"
+        "intake_stop",
+        "arm_default"
+      ]
+    },
+    {
+      "position": 0.01,
+      "names": [
+        "arm_default"
+      ]
+    },
+    {
+      "position": 5.279999999999889,
+      "names": [
+        "arm_low"
       ]
     }
   ]
