@@ -18,16 +18,17 @@ public class DrivetrainConstants {
     public static final double kvVoltSecondsPerMeter=2.7125;
     public static final double kaVoltSecondsSquaredPerMeter=0.24729;
     public static final double trackWidthMeters=0.69215;
-    public static final double kMaxSpeedMetersPerSecond=3.0;
-    public static final double kMaxAccelerationMetersPerSecondSquared=5.0;
+    public static final double kMaxSpeedMetersPerSecond=2.0;
+    public static final double kMaxAccelerationMetersPerSecondSquared=2.0;
     public static final double kGyroAlignError=2.5;
 
     public static final double kRamseteB=2;
     public static final double kRamseteZeta=0.7;
-    public static final double kPDriveVel=0.1;
-    public static final double kIDriveVel=0.1;
-    public static final double KDDriveVel=0;
-
+    
+    // too high oscilation, decrease P, then I, double check D
+    public static final double kPDriveVel=5.0;
+    public static final double kIDriveVel=5.0;
+    public static final double KDDriveVel=0.085;
     
     public static final double kPCharger=0.006;
     public static final double kICharger=0;
@@ -36,9 +37,6 @@ public class DrivetrainConstants {
     public static final double kPTag=0;
     public static final double kITag=0;
     public static final double kDTag=0;
-
-    public static final double kPTurn=0;
-    public static final double kDTurn=0;
 
     public static final String kCharger = "Charger";
     public static final String kChargerMobilityPath = "Charger Mobility";

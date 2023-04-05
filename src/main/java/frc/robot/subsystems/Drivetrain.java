@@ -5,8 +5,6 @@ import java.util.function.DoubleSupplier;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -14,8 +12,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,9 +38,6 @@ public class Drivetrain extends SubsystemBase {
     CANSparkMax rightBackMotor = new CANSparkMax(DrivetrainConstants.kRightBackPort, MotorType.kBrushless);
     CANSparkMax rightTopMotor = new CANSparkMax(DrivetrainConstants.kRightTopPort, MotorType.kBrushless);
 
-    SparkMaxPIDController leftController = leftFrontMotor.getPIDController();
-    SparkMaxPIDController righController = rightFrontMotor.getPIDController();
-
     RelativeEncoder leftEncoder = leftFrontMotor.getEncoder();
     RelativeEncoder rightEncoder = rightFrontMotor.getEncoder();
 
@@ -55,9 +48,7 @@ public class Drivetrain extends SubsystemBase {
     DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
         getRotation2d(), -rightEncoder.getPosition(), -leftEncoder.getPosition());
 
-    boolean temp = true;
-
-    double pitch;
+    double yaw, pitch;
 
     public Drivetrain() {
         leftTopMotor.follow(leftFrontMotor);
@@ -82,13 +73,8 @@ public class Drivetrain extends SubsystemBase {
         odometry.update(getRotation2d(), -rightEncoder.getPosition(), -leftEncoder.getPosition());
         updateShuffleboard();
 
+        yaw = -gyro.getYaw();
         pitch = gyro.getRoll() + DrivetrainConstants.kGyroAlignError;
-
-        if (Timer.getMatchTime() <= 15 && DriverStation.isTeleop() && temp) {
-            leftTopMotor.setIdleMode(IdleMode.kBrake);
-            rightFrontMotor.setIdleMode(IdleMode.kBrake);
-            temp = false;
-        }
     }
 
     /**
@@ -96,16 +82,10 @@ public class Drivetrain extends SubsystemBase {
      */
     void updateShuffleboard() {
         /** Gyro **/
-        SmartDashboard.putNumber("Yaw", -gyro.getYaw());
+        SmartDashboard.putNumber("Yaw", yaw);
         // pitch and roll are swapped
         SmartDashboard.putNumber("Pitch", pitch); 
         SmartDashboard.putNumber("Roll", gyro.getPitch());
-
-        // Encoder
-        SmartDashboard.putNumber("Left encoder position", -leftEncoder.getPosition());
-        SmartDashboard.putNumber("Right encoder position", -rightEncoder.getPosition());
-        SmartDashboard.putNumber("Left encoder velocity", -leftEncoder.getVelocity());
-        SmartDashboard.putNumber("Right encoder velocity", -rightEncoder.getVelocity());
 
         // Left side motor current
         SmartDashboard.putNumber("LeftFrontMotor Current", leftFrontMotor.getOutputCurrent());
@@ -141,7 +121,11 @@ public class Drivetrain extends SubsystemBase {
         );
     }
 
-    public Command taxiOverCharger() {
+    /**
+     * A command to drive the robot over the charger and back using the gyroscope. 
+     * @return Runnable command.
+     */
+    public Command taxiOverCharger() { // Needs cleanup
         return new SequentialCommandGroup(
             run(
                 () -> {
@@ -236,7 +220,6 @@ public class Drivetrain extends SubsystemBase {
      * @return A {@linkplain Rotation2d} representing the rotation of the robot.
      */
     public Rotation2d getRotation2d() {
-        double yaw = -gyro.getYaw();
         return Rotation2d.fromDegrees(Math.IEEEremainder(yaw, 360.0d));
     }
 

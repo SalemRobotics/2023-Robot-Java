@@ -8,7 +8,6 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.ArmPresets;
@@ -56,21 +55,6 @@ public class RobotContainer {
   
   private void configureBindings() {
 
-    /* Driver Controller */
-      // Set Cube mode and blink purple
-    // new JoystickButton(driverController, Button.kRightBumper.value)
-    // .toggleOnTrue(
-    //   new InstantCommand(() -> { Arm.isConeMode = false; })
-    //   .alongWith(led.gamepieceSolidColor())
-    // );
-
-    //   // Set Cone mode and blink yellow
-    // new JoystickButton(driverController, Button.kLeftBumper.value)
-    // .toggleOnTrue(
-    //   new InstantCommand(() -> { Arm.isConeMode = true; })
-    //   .alongWith(led.gamepieceSolidColor())
-    // );
-
     /* Operator Controller */
       // Hold...
       // A = low goal
@@ -117,7 +101,6 @@ public class RobotContainer {
     
   public Command getAutonomousCommand() {
     return pathPlannerCommand.getCommand();
-    // return drivetrain.taxiOverCharger();
   }
 
   public Command getDisabledCommand() {

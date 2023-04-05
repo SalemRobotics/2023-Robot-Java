@@ -48,6 +48,7 @@ public class PathPlannerDriveCommand extends CommandBase {
       m_chooser.addOption(DrivetrainConstants.kBump3Score, createPathCommand(DrivetrainConstants.kBump3Score));
       m_chooser.addOption(DrivetrainConstants.kCharger1ScoreMobility, createPathCommand(DrivetrainConstants.kCharger1ScoreMobility));
       m_chooser.addOption(DrivetrainConstants.kFlat1ScoreMobility, createPathCommand(DrivetrainConstants.kFlat1ScoreMobility));
+      m_chooser.addOption("Test", createPathCommand("Test"));
 
       SmartDashboard.putData(m_chooser);
       addRequirements(drive, arm, intake);
